@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>PCL Staffing Manager</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f0f2f6;--surf:#fff;--s2:#f7f8fb;--s3:#edf0f5;
+  --bdr:#e2e6ed;--bdr2:#cdd2dc;
+  --tx:#181c26;--txm:#6b7385;--txh:#a0a8b8;
+  --blue:#1e56d9;--bl2:#eff4ff;--bl3:#c7d9ff;--bl4:#1a49c0;
+  --sup:#c97c0a;--su2:#fef6e8;--su3:#fde094;--su4:#954d00;
+  --red:#cd2424;--re2:#fef2f2;--re3:#fcc;
+  --pur:#6c31d4;--pu2:#f4f0ff;--pu3:#d4c5ff;
+  --pink:#b5237a;--pk2:#fdf0f9;
+  --nt:#1e293b;--nt2:#334155;
+  --r:8px;--rs:5px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);font-size:14px;line-height:1.5;min-height:100vh}
+.hdr{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;align-items:center;gap:18px;height:50px;position:sticky;top:0;z-index:300}
+.logo{font-size:14px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;color:var(--tx)}
+.logo em{color:var(--blue);font-style:normal}
+.tabs{display:flex;gap:2px}
+.tb{padding:5px 13px;border:none;background:transparent;color:var(--txm);font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--rs);transition:all .12s;font-family:inherit}
+.tb:hover{background:var(--s2);color:var(--tx)}
+.tb.a{background:var(--bl2);color:var(--blue)}
+.hdr-stats{margin-left:auto;display:flex;gap:16px;align-items:center}
+.hstat{font-size:12px;color:var(--txm)}
+.hstat b{color:var(--tx);font-weight:600}
+.page{display:none;padding:18px 20px;max-width:1120px;margin:0 auto}
+.page.a{display:block}
+.srow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.sc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 14px}
+.sc-val{font-size:22px;font-weight:600;color:var(--tx)}
+.sc-lbl{font-size:11px;color:var(--txm);margin-top:2px}
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.cp{padding:14px 16px}
+.tbar{display:flex;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.tinput{padding:6px 11px;border:1px solid var(--bdr2);border-radius:var(--rs);font-size:13px;background:var(--surf);color:var(--tx);outline:none;font-family:inherit}
+.tinput:focus{border-color:var(--blue)}
+.tsel{padding:6px 10px;border:1px solid var(--bdr2);border-radius:var(--rs);font-size:13px;background:var(--surf);color:var(--tx);cursor:pointer;outline:none;font-family:inherit}
+.btn{padding:6px 13px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:1px solid;transition:all .12s;display:inline-flex;align-items:center;gap:4px;font-family:inherit}
+.btn-p{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-p:hover{background:var(--bl4)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-g{background:transparent;color:var(--txm);border-color:transparent}
+.btn-g:hover{background:var(--s2);color:var(--tx)}
+.btn-d{background:transparent;color:var(--red);border-color:var(--bdr)}
+.btn-d:hover{background:var(--re2);border-color:var(--red)}
+.stable{width:100%;border-collapse:collapse}
+.stable thead tr{background:var(--s2)}
+.stable th{padding:7px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--txm);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--bdr);white-space:nowrap}
+.stable td{padding:0;border-bottom:1px solid var(--bdr)}
+.stable tbody tr:last-child td{border-bottom:none}
+.rw{display:flex;align-items:center;padding:7px 12px;gap:10px;cursor:pointer;transition:background .08s;min-height:44px}
+.rw:hover{background:var(--s2)}
+.rw.exp{background:var(--bl2)}
+.rw.sup-row{border-left:3px solid var(--sup)}
+.sname{font-weight:500;min-width:130px;font-size:13px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.rbadge{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;flex-shrink:0}
+.rbadge-sup{background:var(--su2);color:var(--su4);border:1px solid var(--su3)}
+.rbadge-cc{background:var(--bl2);color:#1842b0;border:1px solid var(--bl3)}
+.vbadge{font-size:10px;padding:1px 5px;border-radius:3px;background:var(--re2);color:var(--red);font-weight:600;text-transform:uppercase;letter-spacing:.2px;flex-shrink:0}
+.shbadge{font-size:11px;padding:2px 8px;border-radius:3px;font-weight:500;white-space:nowrap;flex-shrink:0;min-width:82px;text-align:center}
+.htxt{font-size:11px;color:var(--txm);font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace;white-space:nowrap;flex-shrink:0}
+.nxtday{font-size:9px;color:var(--sup);font-weight:700;margin-left:1px}
+.dots{display:flex;gap:3px;flex-shrink:0}
+.dot{width:20px;height:18px;border-radius:3px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.dot-on{background:var(--blue);color:#fff}
+.dot-son{background:var(--sup);color:#fff}
+.dot-off{background:var(--s3);color:var(--txh)}
+.dot-von{background:var(--red);color:#fff}
+.racts{margin-left:auto;display:flex;gap:3px;opacity:0;transition:opacity .12s;flex-shrink:0}
+.stable tbody tr:hover .racts{opacity:1}
+.epanel{background:var(--bl2);border-top:1px solid var(--bl3);padding:12px 16px;display:none}
+.epanel.open{display:block}
+.addwrap{background:var(--bl2);border:1px solid var(--bl3);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;display:none}
+.addwrap.open{display:block}
+.panel-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--tx)}
+.frow{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+.fg{display:flex;flex-direction:column;gap:3px}
+.fl{font-size:10px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.4px}
+.fi{padding:6px 9px;border:1px solid var(--bdr2);border-radius:var(--rs);font-size:13px;background:var(--surf);color:var(--tx);outline:none;font-family:inherit;min-width:0}
+.fi:focus{border-color:var(--blue)}
+.dtgls{display:flex;gap:4px}
+.dtg{width:32px;height:29px;border:1px solid var(--bdr2);border-radius:var(--rs);background:var(--surf);font-size:11px;font-weight:700;cursor:pointer;color:var(--txm);transition:all .1s;font-family:inherit}
+.dtg.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.vchk{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:4px 0;color:var(--tx)}
+.vchk input{cursor:pointer;width:14px;height:14px}
+.nxtchk{display:flex;align-items:center;height:29px;gap:6px}
+.nxtchk input{cursor:pointer;width:14px;height:14px;accent-color:var(--blue)}
+.nxtchk span{font-size:12px;color:var(--txm)}
+.roletog{display:flex;gap:2px;background:var(--s3);border-radius:var(--rs);padding:2px;height:29px}
+.rtb{padding:0 11px;border:none;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:var(--txm);transition:all .1s;font-family:inherit;letter-spacing:.2px}
+.rtb.cc-a{background:var(--bl2);color:#1842b0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.rtb.sup-a{background:var(--su2);color:var(--su4);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.sh-Day{background:var(--bl2);color:#1842b0}
+.sh-DayBridge{background:#fef9ec;color:#7a4a06}
+.sh-Evening{background:var(--pu2);color:#5520a8}
+.sh-EveBridge{background:var(--pk2);color:var(--pink)}
+.sh-Overnight{background:var(--nt);color:#90a4b8}
+.hmwrap{overflow-x:auto}
+.hmgrid{display:grid;gap:3px;min-width:700px}
+.hmcell{border-radius:3px;cursor:pointer;transition:transform .07s;position:relative;overflow:hidden}
+.hmcell:hover{transform:scale(1.14);z-index:2;outline:2px solid rgba(30,86,217,.5)}
+.sup-pip{position:absolute;bottom:0;left:0;right:0;height:5px;background:rgba(201,124,10,.78)}
+.hmlbl{font-size:11px;font-weight:500;color:var(--txm);display:flex;align-items:center;justify-content:flex-end;padding-right:8px}
+.hmhlbl{font-size:10px;color:var(--txh);display:flex;align-items:center;justify-content:center}
+.lgd-row{display:flex;align-items:center;gap:20px;margin-top:10px;flex-wrap:wrap}
+.lgd{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--txh)}
+.lgdbar{height:8px;width:130px;border-radius:4px;background:linear-gradient(to right,#e8edf8,var(--blue))}
+.lgd-sup{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--txm)}
+.lgd-sup-pip{width:28px;height:6px;border-radius:2px;background:rgba(201,124,10,.78)}
+.hm-opts{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.tgrp{display:flex;gap:2px;background:var(--s3);border-radius:var(--rs);padding:2px}
+.tgb{padding:4px 12px;border:none;border-radius:4px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:var(--txm);transition:all .1s;font-family:inherit}
+.tgb.a{background:var(--surf);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.infopanel{margin-top:12px;background:var(--s2);border-radius:var(--r);padding:12px 14px;min-height:72px;border:1px solid var(--bdr)}
+.ip-title{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:6px}
+.ip-ct{font-size:11px;color:var(--txm);margin-bottom:10px;display:flex;gap:14px;flex-wrap:wrap}
+.ip-ct-sup{color:var(--su4);font-weight:600}
+.ip-ct-cc{color:#1842b0;font-weight:600}
+.ip-sh{font-size:10px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.4px;margin-top:8px;margin-bottom:3px}
+.ip-names{display:flex;flex-wrap:wrap;gap:4px}
+.ip-pill{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bl2);color:#1842b0;border:1px solid var(--bl3)}
+.ip-pill-sup{background:var(--su2);color:var(--su4);border:1px solid var(--su3);font-weight:600}
+.ip-pill-v{background:var(--re2);color:var(--red);border-color:var(--re3)}
+.ttip{position:fixed;background:rgba(14,20,32,.93);color:#f0f4fc;padding:10px 13px;border-radius:var(--r);font-size:12px;pointer-events:none;z-index:9999;display:none;min-width:165px;max-width:285px;box-shadow:0 4px 20px rgba(0,0,0,.35)}
+.tt-title{font-weight:600;margin-bottom:4px;font-size:13px}
+.tt-ct{font-size:11px;color:#94a3b8;margin-bottom:5px;display:flex;gap:10px}
+.tt-ct-sup{color:#fbbf24;font-weight:600}
+.tt-sh{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.3px;margin-top:6px;margin-bottom:2px}
+.tt-names{font-size:12px;line-height:1.7}
+.tt-sup{color:#fbbf24;font-weight:600}
+.tt-v{color:#f87171}
+.daysels{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}
+.dsb{padding:5px 15px;border:1px solid var(--bdr2);border-radius:var(--rs);background:var(--surf);font-size:13px;font-weight:500;cursor:pointer;color:var(--txm);transition:all .12s;font-family:inherit}
+.dsb.a{background:var(--blue);color:#fff;border-color:var(--blue)}
+.sec-labels{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.lanes{display:flex;flex-direction:column;gap:8px}
+.lane{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:10px 14px}
+.lane-sup{border-left:3px solid var(--sup);background:var(--su2)}
+.lane-nm{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.lane-nm-sup{color:var(--su4)}
+.lane-nm-cc{color:var(--txm)}
+.lpills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{font-size:12px;padding:3px 10px;border-radius:11px;border:1px solid}
+.pill-w{background:var(--bl2);color:#1842b0;border-color:var(--bl3)}
+.pill-eve{background:var(--pu2);color:#5520a8;border-color:var(--pu3)}
+.pill-db{background:#fef9ec;color:#7a4a06;border-color:#fde38a}
+.pill-eb{background:var(--pk2);color:var(--pink);border-color:#f5c8e8}
+.pill-on{background:var(--nt);color:#90a4b8;border-color:var(--nt2)}
+.pill-v{background:var(--re2);color:var(--red);border-color:var(--re3)}
+.pill-sup{background:var(--su2);color:var(--su4);border-color:var(--su3);font-weight:700}
+.ch-lg{display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--txm);flex-wrap:wrap}
+.ch-lg span{display:flex;align-items:center;gap:5px}
+.lg-sq{width:10px;height:10px;border-radius:2px;display:inline-block}
+.lg-ln{width:18px;height:3px;border-radius:2px;display:inline-block}
+.empty{text-align:center;padding:30px;color:var(--txh);font-size:13px}
+@media(max-width:680px){
+  .srow{grid-template-columns:repeat(3,1fr)}
+  .hdr-stats{display:none}
+  .hdr{gap:10px;padding:0 12px}
+  .rw{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">PCL <em>Staffing</em></div>
+  <div class="tabs">
+    <button class="tb a" onclick="goTab('roster')">Roster</button>
+    <button class="tb" onclick="goTab('heatmap')">Week Heatmap</button>
+    <button class="tb" onclick="goTab('dayview')">Day View</button>
+  </div>
+  <div class="hdr-stats" id="hdrStats"></div>
+</header>
+
+<!-- ROSTER -->
+<div class="page a" id="page-roster">
+  <div class="srow" id="rsRow"></div>
+  <div class="addwrap" id="addWrap">
+    <div class="panel-title">Add new staff member</div>
+    <div class="frow">
+      <div class="fg"><label class="fl">Name</label><input class="fi" id="aName" placeholder="Full name" style="width:155px"></div>
+      <div class="fg"><label class="fl">Role</label>
+        <div class="roletog">
+          <button class="rtb cc-a" id="aRoleCC" onclick="setAddRole('CC')">CC</button>
+          <button class="rtb" id="aRoleSUP" onclick="setAddRole('CCS')">CCS</button>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Shift</label>
+        <select class="fi" id="aShift" style="width:125px">
+          <option>Day</option><option>Day Bridge</option><option>Evening</option><option>Eve Bridge</option><option>Overnight</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Start time</label><input class="fi" id="aStart" type="time" value="08:00" style="width:110px"></div>
+      <div class="fg"><label class="fl">End time</label><input class="fi" id="aEnd" type="time" value="16:30" style="width:110px"></div>
+      <div class="fg"><label class="fl">Options</label>
+        <div class="nxtchk"><input type="checkbox" id="aNextDay"><span>End is next day</span></div>
+      </div>
+    </div>
+    <div class="frow" style="margin-bottom:10px">
+      <div class="fg"><label class="fl">Working days</label><div class="dtgls" id="aDays"></div></div>
+      <div class="fg" style="margin-top:auto"><label class="vchk"><input type="checkbox" id="aVac" style="accent-color:var(--red)"><span>Open position / Vacancy</span></label></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p btn-sm" onclick="commitAdd()">Add to roster</button>
+      <button class="btn btn-g btn-sm" onclick="cancelAdd()">Cancel</button>
+    </div>
+  </div>
+  <div class="tbar">
+    <input class="tinput" id="srch" placeholder="Search names..." style="width:175px" oninput="renderRoster()">
+    <select class="tsel" id="sflt" onchange="renderRoster()">
+      <option value="">All shifts</option>
+      <option>Day</option><option>Day Bridge</option><option>Evening</option><option>Eve Bridge</option><option>Overnight</option>
+    </select>
+    <select class="tsel" id="rflt" onchange="renderRoster()">
+      <option value="">All roles</option>
+      <option value="CC">CC only</option>
+      <option value="CCS">CCS only</option>
+    </select>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--txm);cursor:pointer">
+      <input type="checkbox" id="showVac" checked onchange="renderRoster()" style="cursor:pointer;accent-color:var(--red)"> Show vacancies
+    </label>
+    <button class="btn btn-p btn-sm" style="margin-left:auto" onclick="openAdd()">+ Add staff</button>
+  </div>
+  <div class="card">
+    <table class="stable">
+      <thead><tr>
+        <th style="padding-left:14px;width:160px">Name</th>
+        <th style="width:50px">Role</th>
+        <th style="width:100px">Shift</th>
+        <th style="width:115px">Hours</th>
+        <th style="width:170px">Schedule</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="staffBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- HEATMAP -->
+<div class="page" id="page-heatmap">
+  <div class="srow" id="hmRow"></div>
+  <div class="card cp">
+    <div class="hm-opts">
+      <div class="tgrp">
+        <button class="tgb a" id="hmvY" onclick="hmVac=true;renderHeatmap()">Include vacancies</button>
+        <button class="tgb" id="hmvN" onclick="hmVac=false;renderHeatmap()">Active only</button>
+      </div>
+      <span style="font-size:12px;color:var(--txm)">Hover cells to see who's on duty</span>
+    </div>
+    <div class="hmwrap"><div class="hmgrid" id="hmGrid"></div></div>
+    <div class="lgd-row">
+      <div class="lgd"><span>0</span><div class="lgdbar"></div><span id="lgdMax">–</span><span>total staff</span></div>
+      <div class="lgd-sup"><div class="lgd-sup-pip"></div><span>Orange bar = supervisor (CCS) on duty</span></div>
+    </div>
+    <div class="infopanel" id="hmInfo"><span style="font-size:13px;color:var(--txh)">Hover any cell to see who's working</span></div>
+  </div>
+</div>
+
+<!-- DAY VIEW -->
+<div class="page" id="page-dayview">
+  <div class="daysels" id="daySels"></div>
+  <div class="card cp" style="margin-bottom:14px">
+    <div style="position:relative;height:300px"><canvas id="dvChart"></canvas></div>
+    <div class="ch-lg">
+      <span><span class="lg-sq" style="background:rgba(30,86,217,.7)"></span>Crisis Counselors (CC)</span>
+      <span><span class="lg-sq" style="background:rgba(201,124,10,.82)"></span>Supervisors (CCS)</span>
+      <span><span class="lg-sq" style="background:rgba(205,36,36,.15)"></span>With vacancies</span>
+    </div>
+  </div>
+  <div class="sec-labels" id="dvSecLabels"></div>
+  <div class="lanes" id="dvLanes"></div>
+</div>
+
+<div class="ttip" id="ttip"></div>
+
+<script>
+const DAYS_FULL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const HOURS=[...Array(24).keys()];
+const SHIFT_ORDER=['Day','Day Bridge','Evening','Eve Bridge','Overnight'];
+function shiftBg(sh){return{Day:'var(--bl2)','Day Bridge':'#fef9ec',Evening:'var(--pu2)','Eve Bridge':'var(--pk2)',Overnight:'var(--nt)'}[sh]||'var(--s3)'}
+function shiftTx(sh){return{Day:'#1842b0','Day Bridge':'#7a4a06',Evening:'#5520a8','Eve Bridge':'var(--pink)',Overnight:'#90a4b8'}[sh]||'var(--txm)'}
+function pillClass(sh){return{Day:'pill-w','Day Bridge':'pill-db',Evening:'pill-eve','Eve Bridge':'pill-eb',Overnight:'pill-on'}[sh]||'pill-w'}
+
+const DEFAULT=[
+  {id:'d1', n:'Rae',            sh:'Day',        s:8.5, e:17,   d:[1,1,1,1,0,0,1], v:false, sup:false},
+  {id:'d2', n:'Vacancy (Day)',  sh:'Day',        s:8.5, e:17,   d:[0,1,1,1,1,1,0], v:true,  sup:false},
+  {id:'d3', n:'Robin',          sh:'Day',        s:8,   e:16.5, d:[1,1,1,1,0,0,1], v:false, sup:false},
+  {id:'d4', n:'Brian',          sh:'Day',        s:9,   e:17.5, d:[1,1,1,1,1,0,0], v:false, sup:false},
+  {id:'d5', n:'Shelly',         sh:'Day',        s:8,   e:16.5, d:[1,1,1,1,0,0,0], v:false, sup:false},
+  {id:'d6', n:'Kenya J.',       sh:'Day',        s:8,   e:16.5, d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d7', n:'Jakira',         sh:'Day',        s:8.5, e:17,   d:[0,0,1,1,1,1,1], v:false, sup:false},
+  {id:'d8', n:'Jordan',         sh:'Day',        s:8,   e:16.5, d:[1,1,1,1,0,0,1], v:false, sup:false},
+  {id:'d9', n:'Andrew',         sh:'Day',        s:8.5, e:17,   d:[1,1,1,1,1,0,0], v:false, sup:true},
+  {id:'d10',n:'Kimble',         sh:'Day',        s:8.5, e:17,   d:[1,1,1,1,1,0,0], v:false, sup:false},
+  {id:'d11',n:'Jacara',         sh:'Day',        s:8.5, e:17,   d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d12',n:'Spencer',        sh:'Day',        s:8,   e:16.5, d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d13',n:'Markeea',        sh:'Day',        s:8,   e:16.5, d:[1,1,1,1,0,0,1], v:false, sup:true},
+  {id:'d14',n:'Crossley (Day)', sh:'Day',        s:8,   e:16.5, d:[1,0,0,0,0,0,1], v:false, sup:false},
+  {id:'d15',n:'Kenya H.',       sh:'Day',        s:8.5, e:17,   d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d16',n:'Aisha',          sh:'Day Bridge', s:11.5,e:22,   d:[1,1,1,0,0,0,1], v:false, sup:false},
+  {id:'d17',n:'Tanya',          sh:'Day Bridge', s:10.5,e:21,   d:[1,1,1,0,0,0,1], v:false, sup:false},
+  {id:'d18',n:'Vacancy DB-1',   sh:'Day Bridge', s:11.5,e:22,   d:[0,0,1,1,1,1,0], v:true,  sup:false},
+  {id:'d19',n:'Vacancy DB-2',   sh:'Day Bridge', s:10.5,e:21,   d:[0,0,1,1,1,1,0], v:true,  sup:false},
+  {id:'d20',n:'Vacancy DB-3',   sh:'Day Bridge', s:10.5,e:21,   d:[1,1,1,1,1,1,0], v:true,  sup:false},
+  {id:'d21',n:'Jenny',          sh:'Day Bridge', s:11.5,e:22,   d:[1,0,0,1,1,1,1], v:false, sup:false},
+  {id:'d22',n:'Vanessa',        sh:'Day Bridge', s:10.5,e:21,   d:[0,0,1,1,1,1,0], v:false, sup:false},
+  {id:'d23',n:'Crossley (DB)',  sh:'Day Bridge', s:10.5,e:19,   d:[0,1,1,1,0,0,0], v:false, sup:false},
+  {id:'d24',n:'Leslie',         sh:'Evening',    s:16,  e:24.5, d:[1,1,1,1,0,0,1], v:false, sup:false},
+  {id:'d25',n:'Kim',            sh:'Evening',    s:16,  e:24.5, d:[1,1,1,1,1,0,0], v:false, sup:false},
+  {id:'d26',n:'Tiffany',        sh:'Evening',    s:16,  e:24.5, d:[1,1,1,1,1,0,0], v:false, sup:false},
+  {id:'d27',n:'Cathy',          sh:'Evening',    s:16,  e:24.5, d:[1,1,0,0,1,1,1], v:false, sup:false},
+  {id:'d28',n:'Larry',          sh:'Evening',    s:16,  e:24.5, d:[1,0,0,1,1,1,1], v:false, sup:false},
+  {id:'d29',n:'Andrea',         sh:'Evening',    s:16,  e:24.5, d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d30',n:'Raymond',        sh:'Evening',    s:16,  e:24.5, d:[0,0,1,1,1,1,1], v:false, sup:false},
+  {id:'d31',n:'Karlton',        sh:'Evening',    s:16,  e:24.5, d:[1,1,1,1,1,0,0], v:false, sup:true},
+  {id:'d32',n:'Patrick (Eve)',  sh:'Evening',    s:16,  e:24.5, d:[0,0,0,0,0,1,1], v:false, sup:true},
+  {id:'d33',n:'Michele',        sh:'Evening',    s:16,  e:24.5, d:[1,1,1,1,1,0,0], v:false, sup:true},
+  {id:'d34',n:'Taeesha (Eve)',  sh:'Evening',    s:16,  e:24.5, d:[1,0,0,0,1,1,1], v:false, sup:false},
+  {id:'d35',n:'Amanda S.',      sh:'Eve Bridge', s:20,  e:28.5, d:[1,1,1,1,0,0,1], v:false, sup:true},
+  {id:'d36',n:'Thailen G.',     sh:'Eve Bridge', s:20,  e:28.5, d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d37',n:'Kimeesha',       sh:'Overnight',  s:0,   e:8.5,  d:[1,1,1,1,0,0,1], v:false, sup:false},
+  {id:'d38',n:'Sherryann',      sh:'Overnight',  s:0,   e:8.5,  d:[0,1,1,1,1,1,0], v:false, sup:false},
+  {id:'d39',n:'Nija',           sh:'Overnight',  s:0,   e:8.5,  d:[1,1,0,1,1,1,1], v:false, sup:false},
+  {id:'d40',n:'Vacancy (ON-1)', sh:'Overnight',  s:0,   e:8.5,  d:[1,1,1,1,0,0,1], v:true,  sup:false},
+  {id:'d41',n:'Dun-Weah',       sh:'Overnight',  s:22,  e:30.5, d:[0,0,1,1,1,1,0], v:false, sup:false},
+  {id:'d42',n:'Vacancy (ON-2)', sh:'Overnight',  s:0,   e:8.5,  d:[1,0,0,1,1,1,1], v:true,  sup:false},
+  {id:'d43',n:'Patrick (ON)',   sh:'Overnight',  s:0,   e:8.5,  d:[0,0,1,1,1,0,0], v:false, sup:true},
+  {id:'d44',n:'Taeesha (ON)',   sh:'Overnight',  s:22.5,e:31,   d:[0,0,0,1,0,0,0], v:false, sup:false},
+  {id:'d45',n:'Robert',         sh:'Overnight',  s:0,   e:8.5,  d:[1,1,1,0,0,1,1], v:false, sup:false},
+];
+
+let staff=[],editId=null,editDays=[],addDays=[0,0,0,0,0,0,0],addRole='CC',hmVac=true,selDay=0,dvChart=null;
+
+async function loadData(){
+  try{
+    const r=await window.storage.get('pcl-staff-v3');
+    staff=r?JSON.parse(r.value):JSON.parse(JSON.stringify(DEFAULT));
+    staff.forEach(w=>{if(w.sup===undefined)w.sup=false;});
+  }catch{staff=JSON.parse(JSON.stringify(DEFAULT));}
+}
+async function saveData(){try{await window.storage.set('pcl-staff-v3',JSON.stringify(staff));}catch{}}
+
+function fmtH(h){const hh=((h%24)+24)%24;if(hh===0)return'12a';if(hh<12)return hh+'a';if(hh===12)return'12p';return(hh-12)+'p';}
+function fmtHFull(h){const hh=((h%24)+24)%24;const ap=hh<12?'am':'pm';const hr=hh===0?12:hh>12?hh-12:hh;return hr+':00'+ap;}
+function d2t(h){const hh=((h%24)+24)%24;const mm=Math.round((hh%1)*60);return String(Math.floor(hh)).padStart(2,'0')+':'+String(mm).padStart(2,'0');}
+function t2d(s){const[h,m]=s.split(':').map(Number);return h+m/60;}
+function uid(){return'u'+Date.now()+'_'+Math.random().toString(36).slice(2,5);}
+
+function getAt(di,h,inclVac){
+  const r=[];
+  for(const w of staff){
+    if(!inclVac&&w.v)continue;
+    let added=false;
+    if(w.d[di]===1){if(h>=w.s&&h<Math.min(w.e,24)){r.push(w);added=true;}}
+    if(!added&&w.e>24){const prev=(di-1+7)%7;if(w.d[prev]===1&&h<(w.e-24))r.push(w);}
+  }
+  return r;
+}
+
+function peakMin(){
+  let pk=0,mn=99;
+  for(let d=0;d<7;d++)for(let h=0;h<24;h++){const c=getAt(d,h,true).length;pk=Math.max(pk,c);if(c>0)mn=Math.min(mn,c);}
+  return{pk,mn:mn===99?0:mn};
+}
+
+function renderMetrics(id){
+  const act=staff.filter(x=>!x.v).length;
+  const ccs=staff.filter(x=>!x.v&&x.sup).length;
+  const cc=act-ccs;
+  const vc=staff.filter(x=>x.v).length;
+  const{pk,mn}=peakMin();
+  document.getElementById(id).innerHTML=
+    `<div class="sc"><div class="sc-val" style="color:var(--sup)">${ccs}</div><div class="sc-lbl">Supervisors (CCS)</div></div>`+
+    `<div class="sc"><div class="sc-val" style="color:var(--blue)">${cc}</div><div class="sc-lbl">Counselors (CC)</div></div>`+
+    `<div class="sc"><div class="sc-val" style="color:var(--red)">${vc}</div><div class="sc-lbl">Open positions</div></div>`+
+    `<div class="sc"><div class="sc-val">${pk}</div><div class="sc-lbl">Peak coverage</div></div>`+
+    `<div class="sc"><div class="sc-val" style="color:var(--txm)">${mn}</div><div class="sc-lbl">Min coverage</div></div>`;
+  document.getElementById('hdrStats').innerHTML=
+    `<div class="hstat"><span style="color:var(--sup);font-weight:600">${ccs} CCS</span> &nbsp; <b>${cc}</b> CC &nbsp; <span style="color:var(--red)">${vc}</span> vacancies &nbsp; Peak <b>${pk}</b></div>`;
+}
+
+function goTab(t){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('a'));
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('a'));
+  document.getElementById('page-'+t).classList.add('a');
+  ['roster','heatmap','dayview'].forEach((n,i)=>{if(n===t)document.querySelectorAll('.tb')[i].classList.add('a');});
+  if(t==='heatmap')renderHeatmap();
+  if(t==='dayview')renderDayView();
+}
+
+function renderRoster(){
+  renderMetrics('rsRow');
+  const q=(document.getElementById('srch').value||'').toLowerCase();
+  const sf=document.getElementById('sflt').value;
+  const rf=document.getElementById('rflt').value;
+  const sv=document.getElementById('showVac').checked;
+  const list=staff.filter(w=>(!w.v||sv)&&(!sf||w.sh===sf)&&(!rf||(rf==='CCS'?w.sup:!w.sup))&&(!q||w.n.toLowerCase().includes(q)));
+  const body=document.getElementById('staffBody');
+  if(!list.length){body.innerHTML=`<tr><td><div class="empty">No staff found</div></td></tr>`;return;}
+  body.innerHTML=list.map(w=>{
+    const exp=editId===w.id;
+    const days=exp?editDays:w.d;
+    const dotC=i=>w.v&&days[i]?'dot-von':w.sup&&days[i]?'dot-son':days[i]?'dot-on':'dot-off';
+    const dotsH=DAYS.map((day,i)=>`<div class="dot ${dotC(i)}" title="${DAYS_FULL[i]}">${day[0]}</div>`).join('');
+    const nd=w.e>24;
+    const htxt=d2t(w.s)+'–'+d2t(nd?w.e-24:w.e)+(nd?'<span class="nxtday">+1d</span>':'');
+    const bc='sh-'+(w.sh.replace(/ /g,''));
+    const roleBadge=w.sup?`<span class="rbadge rbadge-sup">CCS</span>`:`<span class="rbadge rbadge-cc">CC</span>`;
+    const shOpts=['Day','Day Bridge','Evening','Eve Bridge','Overnight'].map(s=>`<option${s===w.sh?' selected':''}>${s}</option>`).join('');
+    const dtH=DAYS.map((dy,i)=>`<button class="dtg${days[i]?' on':''}" onclick="toggleEDay(${i})">${dy[0]}</button>`).join('');
+    const epH=`<div class="epanel${exp?' open':''}" id="ep-${w.id}">
+      <div class="frow">
+        <div class="fg"><label class="fl">Name</label><input class="fi" id="en" value="${w.n.replace(/"/g,'&quot;')}" style="width:155px"></div>
+        <div class="fg"><label class="fl">Role</label>
+          <div class="roletog">
+            <button class="rtb${!w.sup?' cc-a':''}" id="eRoleCC" onclick="setEditRole('CC')">CC</button>
+            <button class="rtb${w.sup?' sup-a':''}" id="eRoleSUP" onclick="setEditRole('CCS')">CCS</button>
+          </div>
+        </div>
+        <div class="fg"><label class="fl">Shift</label><select class="fi" id="esh" style="width:125px">${shOpts}</select></div>
+        <div class="fg"><label class="fl">Start</label><input class="fi" id="es" type="time" value="${d2t(w.s)}" style="width:110px"></div>
+        <div class="fg"><label class="fl">End</label><input class="fi" id="ee" type="time" value="${d2t(nd?w.e-24:w.e)}" style="width:110px"></div>
+        <div class="fg"><label class="fl">Options</label><div class="nxtchk"><input type="checkbox" id="end"${nd?' checked':''}><span>End next day</span></div></div>
+      </div>
+      <div class="frow" style="margin-bottom:8px">
+        <div class="fg"><label class="fl">Working days</label><div class="dtgls" id="edays">${dtH}</div></div>
+        <div class="fg" style="margin-top:auto"><label class="vchk"><input type="checkbox" id="evac" style="accent-color:var(--red)"${w.v?' checked':''}><span>Open position / Vacancy</span></label></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-p btn-sm" onclick="saveEdit('${w.id}')">Save changes</button>
+        <button class="btn btn-g btn-sm" onclick="cancelEdit()">Cancel</button>
+      </div>
+    </div>`;
+    return`<tr><td>
+      <div class="rw${exp?' exp':''}${w.sup?' sup-row':''}" onclick="toggleEdit('${w.id}')">
+        <div class="sname">${w.n}${w.v?` <span class="vbadge">open</span>`:''}</div>
+        ${roleBadge}
+        <span class="shbadge ${bc}" style="background:${shiftBg(w.sh)};color:${shiftTx(w.sh)}">${w.sh}</span>
+        <div class="htxt">${htxt}</div>
+        <div class="dots">${dotsH}</div>
+        <div class="racts">
+          <button class="btn btn-sm btn-g" onclick="event.stopPropagation();toggleEdit('${w.id}')">${exp?'Close':'Edit'}</button>
+          <button class="btn btn-sm btn-d" onclick="event.stopPropagation();removeStaff('${w.id}')">Remove</button>
+        </div>
+      </div>
+      ${epH}
+    </td></tr>`;
+  }).join('');
+}
+
+function toggleEdit(id){
+  if(editId===id){editId=null;editDays=[];}
+  else{editId=id;editDays=[...staff.find(x=>x.id===id).d];}
+  renderRoster();
+}
+function cancelEdit(){editId=null;editDays=[];renderRoster();}
+function toggleEDay(i){
+  editDays[i]=editDays[i]?0:1;
+  document.getElementById('edays').querySelectorAll('.dtg').forEach((b,j)=>b.classList.toggle('on',editDays[j]===1));
+}
+function setEditRole(r){
+  const w=staff.find(x=>x.id===editId);if(!w)return;
+  w.sup=(r==='CCS');
+  document.getElementById('eRoleCC').className='rtb'+(r==='CC'?' cc-a':'');
+  document.getElementById('eRoleSUP').className='rtb'+(r==='CCS'?' sup-a':'');
+}
+function saveEdit(id){
+  const w=staff.find(x=>x.id===id);if(!w)return;
+  const nm=document.getElementById('en').value.trim();
+  if(!nm){alert('Name cannot be empty');return;}
+  w.n=nm;w.sh=document.getElementById('esh').value;
+  w.s=t2d(document.getElementById('es').value);
+  const rawE=t2d(document.getElementById('ee').value);
+  w.e=document.getElementById('end').checked?rawE+24:rawE;
+  w.d=[...editDays];w.v=document.getElementById('evac').checked;
+  editId=null;editDays=[];saveData();renderRoster();
+}
+function removeStaff(id){if(!confirm('Remove this person?'))return;staff=staff.filter(x=>x.id!==id);saveData();renderRoster();}
+
+function setAddRole(r){
+  addRole=r;
+  document.getElementById('aRoleCC').className='rtb'+(r==='CC'?' cc-a':'');
+  document.getElementById('aRoleSUP').className='rtb'+(r==='CCS'?' sup-a':'');
+}
+function openAdd(){
+  addDays=[0,0,0,0,0,0,0];addRole='CC';
+  document.getElementById('aName').value='';
+  document.getElementById('aStart').value='08:00';
+  document.getElementById('aEnd').value='16:30';
+  document.getElementById('aNextDay').checked=false;
+  document.getElementById('aVac').checked=false;
+  setAddRole('CC');
+  document.getElementById('aDays').querySelectorAll('.dtg').forEach(b=>b.classList.remove('on'));
+  document.getElementById('addWrap').classList.add('open');
+  document.getElementById('aName').focus();
+}
+function cancelAdd(){document.getElementById('addWrap').classList.remove('open');}
+function toggleADay(i){
+  addDays[i]=addDays[i]?0:1;
+  document.getElementById('aDays').querySelectorAll('.dtg')[i].classList.toggle('on',addDays[i]===1);
+}
+function commitAdd(){
+  const nm=document.getElementById('aName').value.trim();
+  if(!nm){alert('Please enter a name');return;}
+  const rawE=t2d(document.getElementById('aEnd').value);
+  const nd=document.getElementById('aNextDay').checked;
+  staff.push({id:uid(),n:nm,sh:document.getElementById('aShift').value,
+    s:t2d(document.getElementById('aStart').value),e:nd?rawE+24:rawE,
+    d:[...addDays],v:document.getElementById('aVac').checked,sup:addRole==='CCS'});
+  saveData();cancelAdd();renderRoster();
+}
+
+function renderHeatmap(){
+  renderMetrics('hmRow');
+  const grid=DAYS.map((_,d)=>HOURS.map(h=>getAt(d,h,hmVac)));
+  const mx=Math.max(...grid.flat().map(a=>a.length),1);
+  document.getElementById('lgdMax').textContent=mx;
+  document.getElementById('hmvY').classList.toggle('a',hmVac);
+  document.getElementById('hmvN').classList.toggle('a',!hmVac);
+  const g=document.getElementById('hmGrid');
+  const CH=36;
+  g.style.gridTemplateColumns='44px repeat(24,minmax(26px,1fr))';
+  let h='<div style="height:18px"></div>';
+  for(let hr=0;hr<24;hr++)h+=`<div class="hmhlbl" style="height:18px">${hr%3===0?fmtH(hr):''}</div>`;
+  for(let d=0;d<7;d++){
+    h+=`<div class="hmlbl" style="height:${CH}px">${DAYS[d]}</div>`;
+    for(let hr=0;hr<24;hr++){
+      const ws=grid[d][hr];const c=ws.length;
+      const al=c===0?0:0.1+0.88*(c/mx);
+      const bg=c===0?'var(--s3)':`rgba(30,86,217,${al.toFixed(2)})`;
+      const hasSup=ws.some(x=>x.sup&&!x.v);
+      const hasVac=ws.some(x=>x.v);
+      const brd=hasVac&&c>0?'1.5px solid rgba(205,36,36,.45)':'none';
+      const pip=hasSup?'<div class="sup-pip"></div>':'';
+      h+=`<div class="hmcell" style="height:${CH}px;background:${bg};border:${brd}" onmouseover="showTT(event,${d},${hr})" onmouseleave="hideTT()">${pip}</div>`;
+    }
+  }
+  g.innerHTML=h;
+}
+
+function showTT(e,d,hr){
+  const ws=getAt(d,hr,hmVac);
+  if(!ws.length){hideTT();return;}
+  const sups=ws.filter(x=>x.sup&&!x.v),ccs=ws.filter(x=>!x.sup&&!x.v),vacs=ws.filter(x=>x.v);
+  const bySh={};ws.forEach(w=>{(bySh[w.sh]=bySh[w.sh]||[]).push(w);});
+  let h=`<div class="tt-title">${ws.length} on duty — ${DAYS[d]} ${fmtHFull(hr)}</div>`;
+  h+=`<div class="tt-ct"><span class="tt-ct-sup">${sups.length} CCS</span><span>${ccs.length} CC</span>${vacs.length?`<span style="color:#f87171">${vacs.length} vacant</span>`:''}</div>`;
+  for(const[sh,arr]of Object.entries(bySh)){
+    h+=`<div class="tt-sh">${sh}</div><div class="tt-names">${arr.map(w=>`<span class="${w.v?'tt-v':w.sup?'tt-sup':''}">${w.n}</span>`).join(', ')}</div>`;
+  }
+  const tt=document.getElementById('ttip');
+  tt.innerHTML=h;tt.style.display='block';posTT(e);
+  const bySh2={};ws.forEach(w=>{(bySh2[w.sh]=bySh2[w.sh]||[]).push(w);});
+  let ih=`<div class="ip-title">${ws.length} on duty — ${DAYS_FULL[d]}, ${fmtHFull(hr)}</div>`;
+  ih+=`<div class="ip-ct"><span class="ip-ct-sup">${sups.length} supervisors (CCS)</span><span class="ip-ct-cc">${ccs.length} counselors (CC)</span>${vacs.length?`<span style="color:var(--red)">${vacs.length} vacant</span>`:''}</div>`;
+  for(const sh of SHIFT_ORDER){
+    if(!bySh2[sh])continue;
+    ih+=`<div class="ip-sh">${sh}</div><div class="ip-names">${bySh2[sh].map(w=>`<span class="ip-pill${w.v?' ip-pill-v':w.sup?' ip-pill-sup':''}">${w.n}</span>`).join('')}</div>`;
+  }
+  document.getElementById('hmInfo').innerHTML=ih;
+}
+function posTT(e){
+  const tt=document.getElementById('ttip');
+  tt.style.left=Math.min(e.clientX+15,window.innerWidth-300)+'px';
+  tt.style.top=Math.min(e.clientY+15,window.innerHeight-250)+'px';
+}
+function hideTT(){document.getElementById('ttip').style.display='none';}
+document.addEventListener('mousemove',e=>{if(document.getElementById('ttip').style.display==='block')posTT(e);});
+
+function renderDayView(){
+  document.getElementById('daySels').innerHTML=DAYS_FULL.map((d,i)=>`<button class="dsb${i===selDay?' a':''}" onclick="selDay=${i};renderDayView()">${d}</button>`).join('');
+  const ccData=HOURS.map(h=>getAt(selDay,h,false).filter(w=>!w.sup).length);
+  const supData=HOURS.map(h=>getAt(selDay,h,false).filter(w=>w.sup).length);
+  const vacData=HOURS.map(h=>getAt(selDay,h,true).length);
+  if(dvChart){dvChart.destroy();dvChart=null;}
+  const ctx=document.getElementById('dvChart').getContext('2d');
+  dvChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:HOURS.map(fmtH),datasets:[
+      {label:'CC',data:ccData,backgroundColor:'rgba(30,86,217,.68)',borderRadius:3,order:2,stack:'s'},
+      {label:'CCS',data:supData,backgroundColor:'rgba(201,124,10,.82)',borderRadius:3,order:2,stack:'s'},
+      {label:'With vacancies',type:'line',data:vacData,backgroundColor:'rgba(205,36,36,.1)',borderColor:'rgba(205,36,36,.35)',borderWidth:1.5,fill:true,pointRadius:0,order:1,tension:.3}
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        title:i=>`${DAYS_FULL[selDay]}, ${fmtHFull(i[0].dataIndex)}`,
+        afterBody:items=>{
+          const h=items[0].dataIndex;
+          const sups=getAt(selDay,h,false).filter(w=>w.sup).map(w=>w.n);
+          return sups.length?['',`Supervisors: ${sups.join(', ')}`]:[];
+        }
+      }}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#a0a8b8',font:{size:10},maxTicksLimit:13},grid:{color:'rgba(0,0,0,.04)'},border:{color:'rgba(0,0,0,.07)'}},
+        y:{stacked:true,ticks:{color:'#a0a8b8',font:{size:11},stepSize:1},grid:{color:'rgba(0,0,0,.04)'},border:{color:'rgba(0,0,0,.07)'},min:0,title:{display:true,text:'Staff count',color:'#a0a8b8',font:{size:11}}}
+      }
+    }
+  });
+
+  const seen=new Set();const todayWorkers=[];
+  for(const w of staff){
+    if(seen.has(w.id))continue;
+    if(w.d[selDay]===1||(w.e>24&&w.d[(selDay-1+7)%7]===1)){todayWorkers.push(w);seen.add(w.id);}
+  }
+  const sups=todayWorkers.filter(w=>w.sup);
+  const ccs=todayWorkers.filter(w=>!w.sup);
+  const lw=document.getElementById('dvLanes');
+  const sl=document.getElementById('dvSecLabels');
+  if(!todayWorkers.length){sl.innerHTML='';lw.innerHTML=`<div class="empty">No one scheduled on ${DAYS_FULL[selDay]}</div>`;return;}
+  sl.innerHTML=
+    `<div class="sec-label" style="color:var(--su4)">Supervisors (CCS) — ${sups.length}</div>`+
+    `<div class="sec-label" style="color:var(--blue)">Counselors (CC) — ${ccs.length}</div>`;
+  const byShSup={};sups.forEach(w=>{(byShSup[w.sh]=byShSup[w.sh]||[]).push(w);});
+  const byShCC={};ccs.forEach(w=>{(byShCC[w.sh]=byShCC[w.sh]||[]).push(w);});
+  lw.innerHTML=
+    SHIFT_ORDER.filter(sh=>byShSup[sh]).map(sh=>`
+      <div class="lane lane-sup">
+        <div class="lane-nm lane-nm-sup">CCS — ${sh}</div>
+        <div class="lpills">${byShSup[sh].map(w=>`<span class="pill ${w.v?'pill-v':'pill-sup'}">${w.n}</span>`).join('')}</div>
+      </div>`).join('')+
+    SHIFT_ORDER.filter(sh=>byShCC[sh]).map(sh=>`
+      <div class="lane">
+        <div class="lane-nm lane-nm-cc">${sh}</div>
+        <div class="lpills">${byShCC[sh].map(w=>`<span class="pill ${w.v?'pill-v':pillClass(sh)}">${w.n}</span>`).join('')}</div>
+      </div>`).join('');
+}
+
+async function init(){
+  await loadData();
+  document.getElementById('aDays').innerHTML=DAYS.map((d,i)=>`<button class="dtg" onclick="toggleADay(${i})">${d[0]}</button>`).join('');
+  renderRoster();
+}
+init();
+</script>
+</body>
+</html>
