@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>PCL Staffing Manager - Philadelphia</title>
+<title>PCL Staffing Manager</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root{
@@ -18,53 +18,38 @@
 body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;padding-bottom:50px}
 .hdr{background:#fff;border-bottom:1px solid var(--s3);padding:0 24px;display:flex;align-items:center;height:65px;position:sticky;top:0;z-index:1000;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
 .logo{font-weight:800;font-size:18px;color:var(--blue);margin-right:40px;letter-spacing:-0.5px}
-.logo em{font-style:normal;color:var(--tx)}
 .tabs{display:flex;gap:6px;background:var(--s2);padding:5px;border-radius:var(--r)}
 .tb{padding:8px 18px;border:none;background:transparent;font-weight:600;color:var(--txm);cursor:pointer;border-radius:var(--rs);transition:0.2s;font-size:13px}
-.tb.a{background:#fff;color:var(--blue);box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)}
-.page{display:none;padding:24px;max-width:1300px;margin:0 auto;animation:fadeIn 0.2s ease-out}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.tb.a{background:#fff;color:var(--blue);box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+.page{display:none;padding:24px;max-width:1300px;margin:0 auto}
 .page.a{display:block}
 .card{background:#fff;border:1px solid var(--s3);border-radius:var(--r);padding:25px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:24px}
 
 /* Editor Panel */
-.editor-panel{background:var(--bl2);border:2px solid var(--blue);border-radius:var(--r);padding:24px;margin-bottom:24px;display:none;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
+.editor-panel{background:var(--bl2);border:2px solid var(--blue);border-radius:var(--r);padding:24px;margin-bottom:24px;display:none}
 .editor-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:20px;align-items:flex-end}
-.fi{width:100%;padding:10px;border:1px solid var(--s3);border-radius:var(--rs);outline:none;font-size:14px}
-.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--bl2)}
+.fi{width:100%;padding:10px;border:1px solid var(--s3);border-radius:var(--rs);outline:none;font-size:14px;background:#fff}
 .day-toggles{display:flex;gap:6px;margin-top:15px}
-.dtg{width:38px;height:38px;border:1px solid var(--s3);background:#fff;cursor:pointer;border-radius:var(--rs);font-weight:700;transition:0.1s}
+.dtg{width:38px;height:38px;border:1px solid var(--s3);background:#fff;cursor:pointer;border-radius:var(--rs);font-weight:700}
 .dtg.on{background:var(--blue);color:#fff;border-color:var(--blue)}
 
 /* Heatmap */
-.hmgrid{display:grid;gap:3px;margin-top:15px;background:var(--s3);border:2px solid var(--s3);padding:3px;border-radius:var(--r);overflow-x:auto}
-.hmcell{background:#fff;min-height:50px;min-width:35px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;cursor:pointer;position:relative;transition:0.1s;border-radius:4px}
-.hmcell:hover{transform:scale(1.15);z-index:50;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)}
-.hm-label{font-weight:800;font-size:13px;display:flex;align-items:center;padding:10px;background:var(--s2)}
-.hm-hr{text-align:center;font-size:11px;color:var(--txm);padding:8px 0;font-weight:600}
+.hmgrid{display:grid;gap:3px;margin-top:15px;background:var(--s3);border:2px solid var(--s3);padding:3px;border-radius:var(--r)}
+.hmcell{background:#fff;min-height:50px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;cursor:pointer;position:relative;border-radius:4px}
 .sup-pip{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--sup);border-radius:50%;border:1px solid #fff}
-
-/* Buttons */
-.btn{padding:10px 20px;border-radius:var(--rs);border:none;font-weight:700;cursor:pointer;transition:0.2s;display:inline-flex;align-items:center;gap:8px;font-size:13px}
-.btn-p{background:var(--blue);color:#fff}
-.btn-p:hover{background:var(--bl4);transform:translateY(-1px)}
-.btn-d{background:var(--re2);color:var(--red)}
-.btn-g{background:var(--s2);color:var(--txm)}
 
 /* Roster Table */
 .stable{width:100%;border-collapse:collapse}
-.stable th{text-align:left;padding:15px;border-bottom:2px solid var(--s2);color:var(--txm);font-size:11px;text-transform:uppercase;letter-spacing:0.05em}
-.stable td{padding:15px;border-bottom:1px solid var(--s2)}
-.sup-row{border-left:5px solid var(--sup)}
-.badge{padding:4px 8px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase}
-.badge-sup{background:var(--su2);color:var(--su4)}
-.badge-cc{background:var(--bl2);color:var(--blue)}
+.stable td, .stable th{padding:15px;border-bottom:1px solid var(--s2);text-align:left}
+.btn{padding:8px 15px;border-radius:6px;border:none;font-weight:700;cursor:pointer;font-size:12px}
+.btn-p{background:var(--blue);color:#fff}
+.btn-d{background:var(--re2);color:var(--red)}
 </style>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="logo">PCL <em>Staffing Manager</em></div>
+  <div class="logo">PCL Staffing Manager</div>
   <div class="tabs">
     <button class="tb a" onclick="goTab('dayview')">Day View</button>
     <button class="tb" onclick="goTab('heatmap')">Week Heatmap</button>
@@ -74,109 +59,107 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
 
 <div class="page a" id="page-dayview">
     <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; flex-wrap:wrap; gap:15px">
-            <div>
-                <h2 style="font-size:22px">Visual Timeline</h2>
-                <p style="color:var(--txm); font-size:13px">Phila. Crisis Line Coverage Audit</p>
-            </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px">
+            <h2>Visual Timeline</h2>
             <div id="daySelector" style="display:flex; gap:6px"></div>
         </div>
-        <div style="height:450px; position:relative"><canvas id="dvChart"></canvas></div>
+        <div style="height:450px"><canvas id="dvChart"></canvas></div>
     </div>
 </div>
 
 <div class="page" id="page-heatmap">
   <div class="card">
-    <h2 style="margin-bottom:10px">Weekly Coverage Density</h2>
-    <p style="color:var(--txm); margin-bottom:20px">Numbers indicate total staff on duty. Orange dots signify a Supervisor (CCS) is present.</p>
+    <h2>Coverage Heatmap</h2>
     <div class="hmgrid" id="hmGrid"></div>
   </div>
 </div>
 
 <div class="page" id="page-roster">
   <div class="editor-panel" id="editorPanel">
-    <h3 id="editorTitle" style="margin-bottom:20px; font-size:20px">Add Staff Member</h3>
+    <h3 id="editorTitle">Staff Editor</h3>
     <input type="hidden" id="eId">
     <div class="editor-grid">
-      <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px">Full Name</label><input class="fi" id="eName" placeholder="e.g. Sergey Levin"></div>
-      <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px">Role</label><select class="fi" id="eRole"><option value="CC">Counselor (CC)</option><option value="CCS">Supervisor (CCS)</option></select></div>
-      <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px">Shift Type</label><select class="fi" id="eShift">
-        <option>Day</option><option>Day Bridge</option><option>Evening</option><option>Eve Bridge</option><option>Overnight</option>
-      </select></div>
-      <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px">Start (24h)</label><input class="fi" type="number" id="eStart" value="8" min="0" max="23"></div>
-      <div><label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px">End (24h)</label><input class="fi" type="number" id="eEnd" value="16" min="0" max="48"></div>
+      <div><label>Name</label><input class="fi" id="eName"></div>
+      <div><label>Role</label><select class="fi" id="eRole"><option value="CC">Counselor</option><option value="CCS">Supervisor</option></select></div>
+      <div><label>Start Time</label><input class="fi" type="time" id="eStart"></div>
+      <div><label>End Time</label><input class="fi" type="time" id="eEnd"></div>
+      <div><label><input type="checkbox" id="eNextDay"> Ends Next Day?</label></div>
     </div>
-    <div style="margin-top:20px">
-        <label style="display:block; font-size:12px; font-weight:700; margin-bottom:5px">Scheduled Days</label>
-        <div class="day-toggles" id="eDays"></div>
-    </div>
-    <div style="margin-top:30px; display:flex; gap:12px; border-top:1px solid var(--s3); padding-top:20px">
-      <button class="btn btn-p" onclick="saveStaff()">Confirm & Save</button>
-      <button class="btn btn-g" onclick="closeEditor()">Discard Changes</button>
+    <div class="day-toggles" id="eDays"></div>
+    <div style="margin-top:20px; display:flex; gap:10px">
+      <button class="btn btn-p" onclick="saveStaff()">Save Staff Member</button>
+      <button class="btn" onclick="closeEditor()">Cancel</button>
     </div>
   </div>
 
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-    <h2>Staff Roster</h2>
-    <button class="btn btn-p" onclick="openEditor()">+ Add New Staff</button>
+  <div style="display:flex; justify-content:space-between; margin-bottom:20px">
+    <h2>Current Roster</h2>
+    <button class="btn btn-p" onclick="openEditor()">+ Add Staff</button>
   </div>
-
-  <div class="card" style="padding:0; overflow:hidden">
+  <div class="card" style="padding:0">
     <table class="stable">
-      <thead>
-        <tr><th>Name</th><th>Role</th><th>Shift</th><th>Hours</th><th>Schedule</th><th>Actions</th></tr>
-      </thead>
+      <thead><tr><th>Name</th><th>Role</th><th>Hours</th><th>Schedule</th><th>Actions</th></tr></thead>
       <tbody id="rosterBody"></tbody>
     </table>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'pcl_staffing_v_final';
+const STORAGE_KEY = 'pcl_staffing_v_final_v2';
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 let staff = [];
 let currentEditDays = [1,1,1,1,1,0,0];
-let selDay = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+let selDay = 0;
 let dvChart = null;
 
-// FORCE INITIALIZATION
+// TIME HELPERS
+function t2d(timeStr) {
+    if(!timeStr) return 0;
+    const [h, m] = timeStr.split(':').map(Number);
+    return h + (m / 60);
+}
+
+function d2t(decimal) {
+    const h = Math.floor(decimal % 24);
+    const m = Math.round((decimal % 1) * 60);
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+function isWorking(s, dIdx, hr) {
+    if(s.d[dIdx] !== 1) return false;
+    // Overlap logic: shift [s, e] overlaps with hour [hr, hr+1]
+    const start = s.s;
+    const end = s.e;
+    return Math.max(start, hr) < Math.min(end, hr + 1);
+}
+
 function init() {
-    console.log("Initializing PCL Manager...");
     const saved = localStorage.getItem(STORAGE_KEY);
     staff = saved ? JSON.parse(saved) : [];
-    
-    // Explicitly force Day View as default
     goTab('dayview');
 }
 
 function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(staff));
-    console.log("Data committed to local storage.");
     renderAll();
 }
 
-// EDITOR LOGIC
 function openEditor(id = null) {
-    const panel = document.getElementById('editorPanel');
-    panel.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    if (id) {
+    document.getElementById('editorPanel').style.display = 'block';
+    if(id) {
         const s = staff.find(x => x.id === id);
-        document.getElementById('editorTitle').innerText = "Update: " + s.n;
         document.getElementById('eId').value = s.id;
         document.getElementById('eName').value = s.n;
         document.getElementById('eRole').value = s.sup ? "CCS" : "CC";
-        document.getElementById('eShift').value = s.sh;
-        document.getElementById('eStart').value = s.s;
-        document.getElementById('eEnd').value = s.e;
+        document.getElementById('eStart').value = d2t(s.s);
+        document.getElementById('eEnd').value = d2t(s.e % 24);
+        document.getElementById('eNextDay').checked = s.e > 24;
         currentEditDays = [...s.d];
     } else {
-        document.getElementById('editorTitle').innerText = "Add Staff Member";
         document.getElementById('eId').value = "";
         document.getElementById('eName').value = "";
-        document.getElementById('eStart').value = 8;
-        document.getElementById('eEnd').value = 16;
+        document.getElementById('eStart').value = "08:00";
+        document.getElementById('eEnd').value = "16:00";
         currentEditDays = [1,1,1,1,1,0,0];
     }
     renderDayToggles();
@@ -191,69 +174,44 @@ function renderDayToggles() {
     ).join('');
 }
 
-function toggleDay(i) {
-    currentEditDays[i] = currentEditDays[i] ? 0 : 1;
-    renderDayToggles();
-}
+function toggleDay(i) { currentEditDays[i] = currentEditDays[i] ? 0 : 1; renderDayToggles(); }
 
 function saveStaff() {
     const id = document.getElementById('eId').value;
-    const name = document.getElementById('eName').value.trim();
-    if (!name) return alert("Please enter a staff name.");
+    const sTime = t2d(document.getElementById('eStart').value);
+    let eTime = t2d(document.getElementById('eEnd').value);
+    if(document.getElementById('eNextDay').checked) eTime += 24;
 
     const data = {
-        id: id || "st-" + Math.random().toString(36).substr(2, 9),
-        n: name,
+        id: id || "st-" + Date.now(),
+        n: document.getElementById('eName').value,
         sup: document.getElementById('eRole').value === "CCS",
-        sh: document.getElementById('eShift').value,
-        s: parseInt(document.getElementById('eStart').value),
-        e: parseInt(document.getElementById('eEnd').value),
-        d: [...currentEditDays]
+        s: sTime, e: eTime, d: [...currentEditDays]
     };
 
-    if (id) {
+    if(id) {
         const idx = staff.findIndex(x => x.id === id);
-        if(idx !== -1) staff[idx] = data;
+        staff[idx] = data;
     } else {
         staff.push(data);
     }
-
     saveData();
     closeEditor();
 }
 
-function deleteStaff(id) {
-    if (confirm("Are you sure you want to remove this person? This cannot be undone.")) {
-        staff = staff.filter(x => x.id !== id);
-        saveData();
-    }
-}
-
-// RENDERING ENGINE
-function renderAll() {
-    renderRoster();
-    renderHeatmap();
-    renderDayView();
-}
+function renderAll() { renderRoster(); renderHeatmap(); renderDayView(); }
 
 function renderRoster() {
     const body = document.getElementById('rosterBody');
-    if(staff.length === 0) {
-        body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--txm)">No staff added yet. Click "+ Add New Staff" to begin.</td></tr>';
-        return;
-    }
     body.innerHTML = staff.map(s => `
-        <tr class="${s.sup ? 'sup-row' : ''}">
-            <td><strong style="font-size:15px">${s.n}</strong></td>
-            <td><span class="badge ${s.sup ? 'badge-sup' : 'badge-cc'}">${s.sup ? 'CCS' : 'CC'}</span></td>
-            <td><span style="font-weight:600">${s.sh}</span></td>
-            <td><code style="background:var(--s2); padding:3px 6px; border-radius:4px">${s.s}:00-${s.e > 24 ? (s.e-24)+':00' : s.e+':00'}</code></td>
-            <td style="font-weight:700; color:var(--blue)">${s.d.map((on, i) => on ? DAYS[i][0] : '<span style="color:var(--s3)">-</span>').join(' ')}</td>
+        <tr>
+            <td><strong>${s.n}</strong></td>
+            <td>${s.sup ? 'CCS' : 'CC'}</td>
+            <td>${d2t(s.s)} - ${d2t(s.e % 24)} ${s.e > 24 ? '(+1)' : ''}</td>
+            <td>${s.d.map((on, i) => on ? DAYS[i][0] : '-').join(' ')}</td>
             <td>
-                <div style="display:flex; gap:8px">
-                    <button class="btn btn-g" style="padding:6px 12px" onclick="openEditor('${s.id}')">Edit</button>
-                    <button class="btn btn-d" style="padding:6px 12px" onclick="deleteStaff('${s.id}')">Del</button>
-                </div>
+                <button class="btn btn-p" onclick="openEditor('${s.id}')">Edit</button>
+                <button class="btn btn-d" onclick="staff = staff.filter(x => x.id !== '${s.id}'); saveData();">Del</button>
             </td>
         </tr>
     `).join('');
@@ -261,23 +219,18 @@ function renderRoster() {
 
 function renderHeatmap() {
     const grid = document.getElementById('hmGrid');
-    grid.style.gridTemplateColumns = '100px repeat(24, 1fr)';
+    grid.style.gridTemplateColumns = '80px repeat(24, 1fr)';
     let html = '<div></div>';
-    for(let h=0; h<24; h++) html += `<div class="hm-hr">${h}h</div>`;
-
+    for(let h=0; h<24; h++) html += `<div style="text-align:center; font-size:10px">${h}h</div>`;
     for(let d=0; d<7; d++) {
-        html += `<div class="hm-label">${DAYS[d]}</div>`;
+        html += `<div style="padding:10px; font-weight:bold">${DAYS[d]}</div>`;
         for(let h=0; h<24; h++) {
-            const onDuty = staff.filter(s => s.d[d] === 1 && h >= s.s && h < s.e);
+            const onDuty = staff.filter(s => isWorking(s, d, h));
             const count = onDuty.length;
-            const hasSup = onDuty.some(s => s.sup);
             const alpha = Math.min(count / 10, 1);
-            const bg = count === 0 ? '#fff' : `rgba(37, 99, 235, ${alpha})`;
-            const textColor = alpha > 0.4 ? '#fff' : 'var(--tx)';
-            
-            html += `<div class="hmcell" title="${DAYS[d]} @ ${h}:00" style="background:${bg}; color:${textColor}">
+            html += `<div class="hmcell" style="background:${count > 0 ? `rgba(37, 99, 235, ${alpha})` : '#fff'}; color:${alpha > 0.5 ? '#fff' : '#000'}">
                 ${count > 0 ? count : ''}
-                ${hasSup ? '<div class="sup-pip"></div>' : ''}
+                ${onDuty.some(x => x.sup) ? '<div class="sup-pip"></div>' : ''}
             </div>`;
         }
     }
@@ -285,56 +238,31 @@ function renderHeatmap() {
 }
 
 function renderDayView() {
-    const selector = document.getElementById('daySelector');
-    selector.innerHTML = DAYS.map((d, i) => 
-        `<button class="tb ${i === selDay ? 'a' : ''}" onclick="updateDay(${i})">${d}</button>`
+    document.getElementById('daySelector').innerHTML = DAYS.map((d, i) => 
+        `<button class="tb ${i === selDay ? 'a' : ''}" onclick="selDay=${i};renderDayView()">${d}</button>`
     ).join('');
-
     const ctx = document.getElementById('dvChart').getContext('2d');
-    const labels = Array.from({length: 24}, (_, i) => i + ":00");
-    const ccData = labels.map((_, h) => staff.filter(s => s.d[selDay] === 1 && !s.sup && h >= s.s && h < s.e).length);
-    const supData = labels.map((_, h) => staff.filter(s => s.d[selDay] === 1 && s.sup && h >= s.s && h < s.e).length);
-
-    if (dvChart) dvChart.destroy();
+    const hours = Array.from({length: 24}, (_, i) => i);
+    const ccData = hours.map(h => staff.filter(s => isWorking(s, selDay, h) && !s.sup).length);
+    const supData = hours.map(h => staff.filter(s => isWorking(s, selDay, h) && s.sup).length);
+    if(dvChart) dvChart.destroy();
     dvChart = new Chart(ctx, {
         type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                { label: 'CCS (Supervisors)', data: supData, backgroundColor: '#d97706', borderRadius: 4 },
-                { label: 'CC (Counselors)', data: ccData, backgroundColor: '#2563eb', borderRadius: 4 }
-            ]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold' } } } },
-            scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } } 
-        }
+        data: { labels: hours.map(h => h + ":00"), datasets: [
+            { label: 'CCS', data: supData, backgroundColor: '#d97706' },
+            { label: 'CC', data: ccData, backgroundColor: '#2563eb' }
+        ]},
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } } }
     });
-}
-
-function updateDay(i) {
-    selDay = i;
-    renderDayView();
 }
 
 function goTab(t) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('a'));
     document.querySelectorAll('.tb').forEach(b => b.classList.remove('a'));
-    
     document.getElementById('page-' + t).classList.add('a');
-    
-    // Highlight correct tab
-    const tabs = document.querySelectorAll('.tb');
-    if(t === 'dayview') tabs[0].classList.add('a');
-    if(t === 'heatmap') tabs[1].classList.add('a');
-    if(t === 'roster') tabs[2].classList.add('a');
-    
     renderAll();
 }
 
-// EXECUTE
 window.onload = init;
 </script>
 </body>
