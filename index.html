@@ -40,7 +40,7 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
 
 /* Roster Table */
 .stable{width:100%;border-collapse:collapse}
-.stable td, .stable th{padding:15px;border-bottom:1px solid var(--s2);text-align:left}
+.stable td, .stable th{padding:12px;border-bottom:1px solid var(--s2);text-align:left}
 .btn{padding:8px 15px;border-radius:6px;border:none;font-weight:700;cursor:pointer;font-size:12px}
 .btn-p{background:var(--blue);color:#fff}
 .btn-d{background:var(--re2);color:var(--red)}
@@ -105,8 +105,36 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
 </div>
 
 <script>
-const STORAGE_KEY = 'pcl_staffing_v_final_v2';
+const STORAGE_KEY = 'pcl_staffing_v_final_v3';
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// PRELOADED ROSTER DATA
+const PRELOAD_STAFF = [
+  {id:'s1', n:'Rae', sup:false, s:8.5, e:17, d:[1,0,0,1,1,1,1]},
+  {id:'s2', n:'Vacancy 1', sup:false, s:8.5, e:17, d:[0,1,1,1,1,1,0]},
+  {id:'s3', n:'Robin', sup:false, s:8, e:16.5, d:[1,1,1,1,0,0,1]},
+  {id:'s4', n:'Brian', sup:false, s:9, e:17.5, d:[1,1,1,1,1,0,0]},
+  {id:'s5', n:'Kenya J.', sup:false, s:8, e:16.5, d:[1,1,0,0,1,1,1]},
+  {id:'s6', n:'Jakira', sup:false, s:8.5, e:17, d:[0,0,1,1,1,1,1]},
+  {id:'s7', n:'Jordan', sup:false, s:8, e:16.5, d:[1,1,1,1,0,0,1]},
+  {id:'s8', n:'Andrew', sup:false, s:8.5, e:17, d:[1,1,1,1,1,0,0]},
+  {id:'s9', n:'Kimble', sup:false, s:8.5, e:17, d:[1,1,1,1,1,0,0]},
+  {id:'s10', n:'Jacara', sup:false, s:8.5, e:17, d:[0,1,1,1,1,1,0]},
+  {id:'s11', n:'Spencer', sup:true, s:8, e:16.5, d:[0,1,1,1,1,1,0]},
+  {id:'s12', n:'Kenya H.', sup:true, s:8.5, e:17, d:[0,1,1,1,1,1,0]},
+  {id:'s13', n:'Crossley (1)', sup:true, s:8, e:16.5, d:[1,0,0,0,0,0,1]},
+  {id:'s14', n:'Crossley (2)', sup:true, s:10.5, e:19, d:[0,1,1,1,0,0,0]},
+  {id:'s15', n:'Markeea', sup:true, s:7, e:15.5, d:[1,1,1,1,0,0,1]},
+  {id:'s16', n:'Aisha', sup:false, s:11.5, e:22, d:[1,1,1,0,0,0,1]},
+  {id:'s17', n:'Tanya', sup:false, s:10.5, e:21, d:[1,1,1,0,0,0,1]},
+  {id:'s18', n:'Vacancy 1 (bridge)', sup:false, s:11.5, e:22, d:[0,0,1,1,1,1,0]},
+  {id:'s19', n:'Vacancy 2 (Bridge)', sup:false, s:10.5, e:21, d:[0,0,1,1,1,1,0]},
+  {id:'s20', n:'Vacancy 3 (bridge)', sup:false, s:10.5, e:21, d:[1,1,1,0,0,0,1]},
+  {id:'s21', n:'Jenny', sup:false, s:11.5, e:22, d:[1,0,0,0,1,1,1]},
+  {id:'s22', n:'Vanessa', sup:false, s:10.3, e:21, d:[0,0,1,1,1,1,0]},
+  {id:'s23', n:'Amanda S.', sup:false, s:20, e:28.5, d:[1,1,1,1,0,0,1]}
+];
+
 let staff = [];
 let currentEditDays = [1,1,1,1,1,0,0];
 let selDay = 0;
@@ -125,17 +153,24 @@ function d2t(decimal) {
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
 }
 
+// OVERNIGHT FIX: Checks current day + carryover from previous day
 function isWorking(s, dIdx, hr) {
-    if(s.d[dIdx] !== 1) return false;
-    // Overlap logic: shift [s, e] overlaps with hour [hr, hr+1]
-    const start = s.s;
-    const end = s.e;
-    return Math.max(start, hr) < Math.min(end, hr + 1);
+    // 1. Check current day's shift
+    if(s.d[dIdx] === 1) {
+        if (Math.max(s.s, hr) < Math.min(Math.min(s.e, 24), hr + 1)) return true;
+    }
+    // 2. Check if previous day spilled into today
+    const prevIdx = (dIdx - 1 + 7) % 7;
+    if(s.d[prevIdx] === 1 && s.e > 24) {
+        const carryoverEnd = s.e - 24;
+        if (Math.max(0, hr) < Math.min(carryoverEnd, hr + 1)) return true;
+    }
+    return false;
 }
 
 function init() {
     const saved = localStorage.getItem(STORAGE_KEY);
-    staff = saved ? JSON.parse(saved) : [];
+    staff = saved ? JSON.parse(saved) : [...PRELOAD_STAFF];
     goTab('dayview');
 }
 
@@ -208,7 +243,7 @@ function renderRoster() {
             <td><strong>${s.n}</strong></td>
             <td>${s.sup ? 'CCS' : 'CC'}</td>
             <td>${d2t(s.s)} - ${d2t(s.e % 24)} ${s.e > 24 ? '(+1)' : ''}</td>
-            <td>${s.d.map((on, i) => on ? DAYS[i][0] : '-').join(' ')}</td>
+            <td style="font-family: monospace">${s.d.map((on, i) => on ? DAYS[i][0] : '-').join(' ')}</td>
             <td>
                 <button class="btn btn-p" onclick="openEditor('${s.id}')">Edit</button>
                 <button class="btn btn-d" onclick="staff = staff.filter(x => x.id !== '${s.id}'); saveData();">Del</button>
@@ -227,7 +262,7 @@ function renderHeatmap() {
         for(let h=0; h<24; h++) {
             const onDuty = staff.filter(s => isWorking(s, d, h));
             const count = onDuty.length;
-            const alpha = Math.min(count / 10, 1);
+            const alpha = Math.min(count / 12, 1);
             html += `<div class="hmcell" style="background:${count > 0 ? `rgba(37, 99, 235, ${alpha})` : '#fff'}; color:${alpha > 0.5 ? '#fff' : '#000'}">
                 ${count > 0 ? count : ''}
                 ${onDuty.some(x => x.sup) ? '<div class="sup-pip"></div>' : ''}
