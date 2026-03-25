@@ -105,7 +105,6 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
 </div>
 
 <script>
-const STORAGE_KEY = 'pcl_staffing_v_final_v3';
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 // PRELOADED ROSTER DATA
@@ -169,13 +168,18 @@ function isWorking(s, dIdx, hr) {
 }
 
 function init() {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    staff = saved ? JSON.parse(saved) : [...PRELOAD_STAFF];
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+        try { staff = JSON.parse(atob(hash)); }
+        catch(e) { staff = [...PRELOAD_STAFF]; }
+    } else {
+        staff = [...PRELOAD_STAFF];
+    }
     goTab('dayview');
 }
 
 function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(staff));
+    window.location.hash = btoa(JSON.stringify(staff));
     renderAll();
 }
 
