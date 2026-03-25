@@ -7,43 +7,78 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root{
-  --bg:#f8fafc;--surf:#ffffff;--s2:#f1f5f9;--s3:#e2e8f0;
-  --blue:#2563eb;--bl2:#dbeafe;--bl4:#1e40af;
-  --sup:#d97706;--su2:#fef3c7;--su4:#92400e;
+  --bg:#f8fafc;--s2:#f1f5f9;--s3:#e2e8f0;
+  --blue:#2563eb;--bl2:#dbeafe;
+  --sup:#d97706;--su2:#fef3c7;
   --red:#dc2626;--re2:#fee2e2;
+  --green:#16a34a;--gr2:#dcfce7;
   --tx:#0f172a;--txm:#475569;
   --r:12px;--rs:8px;
 }
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,-apple-system,sans-serif}
-body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;padding-bottom:50px}
-.hdr{background:#fff;border-bottom:1px solid var(--s3);padding:0 24px;display:flex;align-items:center;height:65px;position:sticky;top:0;z-index:1000;box-shadow:0 1px 2px rgba(0,0,0,0.05)}
-.logo{font-weight:800;font-size:18px;color:var(--blue);margin-right:40px;letter-spacing:-0.5px}
-.tabs{display:flex;gap:6px;background:var(--s2);padding:5px;border-radius:var(--r)}
-.tb{padding:8px 18px;border:none;background:transparent;font-weight:600;color:var(--txm);cursor:pointer;border-radius:var(--rs);transition:0.2s;font-size:13px}
-.tb.a{background:#fff;color:var(--blue);box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
-.page{display:none;padding:24px;max-width:1300px;margin:0 auto}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',system-ui,sans-serif}
+body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;padding-bottom:60px}
+.hdr{background:#fff;border-bottom:1px solid var(--s3);padding:0 18px;display:flex;align-items:center;min-height:58px;position:sticky;top:0;z-index:1000;box-shadow:0 1px 3px rgba(0,0,0,0.07);gap:10px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:16px;color:var(--blue);letter-spacing:-0.5px;white-space:nowrap}
+.tabs{display:flex;gap:3px;background:var(--s2);padding:4px;border-radius:var(--r)}
+.tb{padding:6px 13px;border:none;background:transparent;font-weight:600;color:var(--txm);cursor:pointer;border-radius:var(--rs);transition:0.15s;font-size:12px;white-space:nowrap}
+.tb.a{background:#fff;color:var(--blue);box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+.hdr-right{margin-left:auto;display:flex;gap:6px}
+.page{display:none;padding:18px;max-width:1400px;margin:0 auto}
 .page.a{display:block}
-.card{background:#fff;border:1px solid var(--s3);border-radius:var(--r);padding:25px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:24px}
-
-/* Editor Panel */
-.editor-panel{background:var(--bl2);border:2px solid var(--blue);border-radius:var(--r);padding:24px;margin-bottom:24px;display:none}
-.editor-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:20px;align-items:flex-end}
-.fi{width:100%;padding:10px;border:1px solid var(--s3);border-radius:var(--rs);outline:none;font-size:14px;background:#fff}
-.day-toggles{display:flex;gap:6px;margin-top:15px}
-.dtg{width:38px;height:38px;border:1px solid var(--s3);background:#fff;cursor:pointer;border-radius:var(--rs);font-weight:700}
-.dtg.on{background:var(--blue);color:#fff;border-color:var(--blue)}
-
-/* Heatmap */
-.hmgrid{display:grid;gap:3px;margin-top:15px;background:var(--s3);border:2px solid var(--s3);padding:3px;border-radius:var(--r)}
-.hmcell{background:#fff;min-height:50px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;cursor:pointer;position:relative;border-radius:4px}
-.sup-pip{position:absolute;top:4px;right:4px;width:8px;height:8px;background:var(--sup);border-radius:50%;border:1px solid #fff}
-
-/* Roster Table */
-.stable{width:100%;border-collapse:collapse}
-.stable td, .stable th{padding:12px;border-bottom:1px solid var(--s2);text-align:left}
-.btn{padding:8px 15px;border-radius:6px;border:none;font-weight:700;cursor:pointer;font-size:12px}
+.card{background:#fff;border:1px solid var(--s3);border-radius:var(--r);padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.07);margin-bottom:18px}
+label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-bottom:4px}
+.fi{width:100%;padding:8px 10px;border:1px solid var(--s3);border-radius:var(--rs);outline:none;font-size:13px;background:#fff}
+.fi:focus{border-color:var(--blue)}
+.btn{padding:7px 14px;border-radius:6px;border:none;font-weight:700;cursor:pointer;font-size:12px}
+.btn:hover{opacity:0.85}
 .btn-p{background:var(--blue);color:#fff}
 .btn-d{background:var(--re2);color:var(--red)}
+.btn-g{background:var(--gr2);color:var(--green)}
+.btn-q{background:var(--s2);color:var(--tx)}
+.editor-panel{background:var(--bl2);border:2px solid var(--blue);border-radius:var(--r);padding:18px;margin-bottom:18px;display:none}
+.editor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;align-items:flex-end}
+.day-toggles{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.dtg{width:34px;height:34px;border:1px solid var(--s3);background:#fff;cursor:pointer;border-radius:var(--rs);font-weight:700;font-size:11px}
+.dtg.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.hmgrid{display:grid;gap:2px;margin-top:10px;background:var(--s3);border:2px solid var(--s3);padding:2px;border-radius:var(--r);overflow-x:auto}
+.hmcell{background:#fff;min-height:40px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;position:relative;border-radius:3px}
+.sup-pip{position:absolute;top:3px;right:3px;width:6px;height:6px;background:var(--sup);border-radius:50%;border:1px solid #fff}
+.stable{width:100%;border-collapse:collapse}
+.stable td,.stable th{padding:9px 11px;border-bottom:1px solid var(--s2);text-align:left;font-size:13px}
+.stable th{font-size:11px;font-weight:700;color:var(--txm);text-transform:uppercase;letter-spacing:.04em}
+.etabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.etb{padding:7px 18px;border:2px solid var(--s3);background:#fff;font-weight:700;cursor:pointer;border-radius:var(--rs);font-size:13px;color:var(--txm)}
+.etb.a{border-color:var(--blue);color:var(--blue);background:var(--bl2)}
+.params-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px}
+.erl-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:780px){.erl-layout{grid-template-columns:1fr}}
+.slot-scroll{max-height:500px;overflow-y:auto;border:1px solid var(--s3);border-radius:var(--rs)}
+.slot-table{width:100%;border-collapse:collapse;font-size:12px}
+.slot-table th{padding:6px 8px;background:var(--s2);font-weight:700;font-size:11px;color:var(--txm);text-transform:uppercase;position:sticky;top:0}
+.slot-table td{padding:3px 6px;border-bottom:1px solid var(--s2)}
+.slot-table tr:hover td{background:var(--s2)}
+.slot-input{width:70px;padding:3px 6px;border:1px solid var(--s3);border-radius:4px;font-size:12px;text-align:center}
+.slot-input:focus{outline:none;border-color:var(--blue)}
+.rbadge{display:inline-block;padding:2px 7px;border-radius:99px;font-weight:700;font-size:11px}
+.rb-z{background:var(--s2);color:var(--txm)}
+.rb-ok{background:var(--gr2);color:var(--green)}
+.rb-w{background:#fef9c3;color:#854d0e}
+.rb-hi{background:var(--re2);color:var(--red)}
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px}
+.sbox{background:var(--s2);border-radius:var(--rs);padding:10px;text-align:center}
+.snum{font-size:20px;font-weight:800;color:var(--blue)}
+.slbl{font-size:10px;color:var(--txm);margin-top:2px}
+.ovbar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s2);border-radius:var(--rs);margin-bottom:12px;flex-wrap:wrap}
+.ovbar label{font-size:12px;color:var(--txm);margin:0;display:flex;align-items:center;gap:5px;cursor:pointer;font-weight:600}
+.ovbar select{padding:4px 8px;border:1px solid var(--s3);border-radius:5px;font-size:12px;background:#fff}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0f172a;color:#fff;padding:9px 20px;border-radius:99px;font-weight:600;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:var(--r);padding:24px;max-width:450px;width:92%;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{margin-bottom:8px}
+.modal p{color:var(--txm);margin-bottom:12px;font-size:13px;line-height:1.6}
+.modal textarea{width:100%;height:120px;padding:8px;border:1px solid var(--s3);border-radius:var(--rs);font-family:monospace;font-size:11px;resize:vertical}
 </style>
 </head>
 <body>
@@ -52,51 +87,87 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
   <div class="logo">PCL Staffing Manager</div>
   <div class="tabs">
     <button class="tb a" onclick="goTab('dayview')">Day View</button>
-    <button class="tb" onclick="goTab('heatmap')">Week Heatmap</button>
-    <button class="tb" onclick="goTab('roster')">Roster</button>
+    <button class="tb"   onclick="goTab('heatmap')">Week Heatmap</button>
+    <button class="tb"   onclick="goTab('roster')">Roster</button>
+    <button class="tb"   onclick="goTab('erlang')">Erlang</button>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-g" onclick="exportData()">⬇ Export</button>
+    <button class="btn btn-q" onclick="openImport()">⬆ Import</button>
   </div>
 </header>
 
-<div class="page a" id="page-dayview">
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px">
-            <h2>Visual Timeline</h2>
-            <div id="daySelector" style="display:flex; gap:6px"></div>
-        </div>
-        <div style="height:450px"><canvas id="dvChart"></canvas></div>
+<div class="modal-bg" id="importModal">
+  <div class="modal">
+    <h3>Import Data</h3>
+    <p>Paste your exported JSON below. This replaces your current roster <strong>and</strong> Erlang data.</p>
+    <textarea id="importText" placeholder="Paste exported JSON here..."></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-p" onclick="doImport()">Import &amp; Replace</button>
+      <button class="btn btn-q" onclick="closeImport()">Cancel</button>
     </div>
+  </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
+<!-- DAY VIEW -->
+<div class="page a" id="page-dayview">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <h2 style="font-size:16px;font-weight:700">Visual Timeline</h2>
+      <div id="daySelector" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+    </div>
+    <div class="ovbar">
+      <label><input type="checkbox" id="erlangOverlayOn" onchange="renderDayView()"> Show Erlang Target Line</label>
+      <span style="font-size:12px;color:var(--txm)">Dataset:</span>
+      <select id="erlangOverlaySet" onchange="renderDayView()">
+        <option value="overall">Overall (7-day avg)</option>
+        <option value="weekday">Weekday (Mon–Fri)</option>
+        <option value="weekend">Weekend (Sat–Sun)</option>
+      </select>
+      <span id="overlayNote" style="font-size:11px;color:var(--txm)"></span>
+    </div>
+    <div style="height:400px"><canvas id="dvChart"></canvas></div>
+  </div>
+  <div class="card" id="gapCard" style="display:none">
+    <h3 style="margin-bottom:10px;font-size:14px;font-weight:700">Coverage Gap Analysis</h3>
+    <div id="gapList"></div>
+  </div>
+</div>
+
+<!-- HEATMAP -->
 <div class="page" id="page-heatmap">
   <div class="card">
-    <h2>Coverage Heatmap</h2>
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Coverage Heatmap</h2>
     <div class="hmgrid" id="hmGrid"></div>
   </div>
 </div>
 
+<!-- ROSTER -->
 <div class="page" id="page-roster">
   <div class="editor-panel" id="editorPanel">
-    <h3 id="editorTitle">Staff Editor</h3>
+    <h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Staff Editor</h3>
     <input type="hidden" id="eId">
     <div class="editor-grid">
       <div><label>Name</label><input class="fi" id="eName"></div>
-      <div><label>Role</label><select class="fi" id="eRole"><option value="CC">Counselor</option><option value="CCS">Supervisor</option></select></div>
+      <div><label>Role</label><select class="fi" id="eRole"><option value="CC">Counselor (CC)</option><option value="CCS">Supervisor (CCS)</option></select></div>
       <div><label>Start Time</label><input class="fi" type="time" id="eStart"></div>
       <div><label>End Time</label><input class="fi" type="time" id="eEnd"></div>
-      <div><label><input type="checkbox" id="eNextDay"> Ends Next Day?</label></div>
+      <div style="padding-top:20px;display:flex;align-items:center;gap:6px"><input type="checkbox" id="eNextDay"><label style="display:inline;margin:0">Ends Next Day?</label></div>
     </div>
+    <div style="font-size:11px;font-weight:700;color:var(--txm);margin-top:12px;margin-bottom:6px">WORKING DAYS</div>
     <div class="day-toggles" id="eDays"></div>
-    <div style="margin-top:20px; display:flex; gap:10px">
-      <button class="btn btn-p" onclick="saveStaff()">Save Staff Member</button>
-      <button class="btn" onclick="closeEditor()">Cancel</button>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveStaff()">Save</button>
+      <button class="btn btn-q" onclick="closeEditor()">Cancel</button>
     </div>
   </div>
-
-  <div style="display:flex; justify-content:space-between; margin-bottom:20px">
-    <h2>Current Roster</h2>
+  <div style="display:flex;justify-content:space-between;margin-bottom:14px;align-items:center">
+    <h2 style="font-size:16px;font-weight:700">Current Roster <span id="rosterCount" style="font-size:12px;font-weight:500;color:var(--txm)"></span></h2>
     <button class="btn btn-p" onclick="openEditor()">+ Add Staff</button>
   </div>
-  <div class="card" style="padding:0">
+  <div class="card" style="padding:0;overflow-x:auto">
     <table class="stable">
       <thead><tr><th>Name</th><th>Role</th><th>Hours</th><th>Schedule</th><th>Actions</th></tr></thead>
       <tbody id="rosterBody"></tbody>
@@ -104,205 +175,453 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
   </div>
 </div>
 
-<script>
-const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+<!-- ERLANG -->
+<div class="page" id="page-erlang">
+  <div class="card">
+    <h2 style="font-size:16px;font-weight:700;margin-bottom:14px">Call Center Parameters</h2>
+    <div class="params-grid">
+      <div><label>Avg Handle Time (seconds)</label><input class="fi" type="number" id="eAHT" min="1" placeholder="e.g. 300"></div>
+      <div><label>Target Service Level (%)</label><input class="fi" type="number" id="eSL" min="1" max="99" placeholder="e.g. 80"></div>
+      <div><label>Answer Within (seconds)</label><input class="fi" type="number" id="eAWT" min="1" placeholder="e.g. 20"></div>
+      <div><label>Shrinkage (%)</label><input class="fi" type="number" id="eShrink" min="0" max="90" placeholder="e.g. 30"></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+      <button class="btn btn-p" onclick="saveErlangParams()">Save Parameters</button>
+      <span style="font-size:12px;color:var(--txm)">Applies to all three datasets.</span>
+    </div>
+  </div>
+  <div class="etabs">
+    <button class="etb a" id="etb-overall" onclick="switchErlangTab('overall')">Overall (7-day avg)</button>
+    <button class="etb"   id="etb-weekday" onclick="switchErlangTab('weekday')">Weekday (Mon–Fri)</button>
+    <button class="etb"   id="etb-weekend" onclick="switchErlangTab('weekend')">Weekend (Sat–Sun)</button>
+  </div>
+  <div id="erlangContent"></div>
+</div>
 
-// PRELOADED ROSTER DATA
+<script>
+const STORAGE_KEY = 'pcl_staffing_v4';
+const OLD_KEY     = 'pcl_staffing_v_final_v3';
+const DAYS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const SLOTS = [];
+for(let h=0;h<24;h++){SLOTS.push(String(h).padStart(2,'0')+':00');SLOTS.push(String(h).padStart(2,'0')+':30');}
+
 const PRELOAD_STAFF = [
-  {id:'s1', n:'Rae', sup:false, s:8.5, e:17, d:[1,0,0,1,1,1,1]},
-  {id:'s2', n:'Vacancy 1', sup:false, s:8.5, e:17, d:[0,1,1,1,1,1,0]},
-  {id:'s3', n:'Robin', sup:false, s:8, e:16.5, d:[1,1,1,1,0,0,1]},
-  {id:'s4', n:'Brian', sup:false, s:9, e:17.5, d:[1,1,1,1,1,0,0]},
-  {id:'s5', n:'Kenya J.', sup:false, s:8, e:16.5, d:[1,1,0,0,1,1,1]},
-  {id:'s6', n:'Jakira', sup:false, s:8.5, e:17, d:[0,0,1,1,1,1,1]},
-  {id:'s7', n:'Jordan', sup:false, s:8, e:16.5, d:[1,1,1,1,0,0,1]},
-  {id:'s8', n:'Andrew', sup:false, s:8.5, e:17, d:[1,1,1,1,1,0,0]},
-  {id:'s9', n:'Kimble', sup:false, s:8.5, e:17, d:[1,1,1,1,1,0,0]},
-  {id:'s10', n:'Jacara', sup:false, s:8.5, e:17, d:[0,1,1,1,1,1,0]},
-  {id:'s11', n:'Spencer', sup:true, s:8, e:16.5, d:[0,1,1,1,1,1,0]},
-  {id:'s12', n:'Kenya H.', sup:true, s:8.5, e:17, d:[0,1,1,1,1,1,0]},
-  {id:'s13', n:'Crossley (1)', sup:true, s:8, e:16.5, d:[1,0,0,0,0,0,1]},
-  {id:'s14', n:'Crossley (2)', sup:true, s:10.5, e:19, d:[0,1,1,1,0,0,0]},
-  {id:'s15', n:'Markeea', sup:true, s:7, e:15.5, d:[1,1,1,1,0,0,1]},
-  {id:'s16', n:'Aisha', sup:false, s:11.5, e:22, d:[1,1,1,0,0,0,1]},
-  {id:'s17', n:'Tanya', sup:false, s:10.5, e:21, d:[1,1,1,0,0,0,1]},
-  {id:'s18', n:'Vacancy 1 (bridge)', sup:false, s:11.5, e:22, d:[0,0,1,1,1,1,0]},
-  {id:'s19', n:'Vacancy 2 (Bridge)', sup:false, s:10.5, e:21, d:[0,0,1,1,1,1,0]},
-  {id:'s20', n:'Vacancy 3 (bridge)', sup:false, s:10.5, e:21, d:[1,1,1,0,0,0,1]},
-  {id:'s21', n:'Jenny', sup:false, s:11.5, e:22, d:[1,0,0,0,1,1,1]},
-  {id:'s22', n:'Vanessa', sup:false, s:10.3, e:21, d:[0,0,1,1,1,1,0]},
-  {id:'s23', n:'Amanda S.', sup:false, s:20, e:28.5, d:[1,1,1,1,0,0,1]}
+  {id:'s1',  n:'Rae',                   sup:false, s:8.5,  e:17,   d:[1,0,0,1,1,1,1]},
+  {id:'s2',  n:'Vacancy 1',             sup:false, s:8.5,  e:17,   d:[0,1,1,1,1,1,0]},
+  {id:'s3',  n:'Robin',                 sup:false, s:8,    e:16.5, d:[1,1,1,1,0,0,1]},
+  {id:'s4',  n:'Brian',                 sup:false, s:9,    e:17.5, d:[1,1,1,1,1,0,0]},
+  {id:'s5',  n:'Kenya J.',              sup:false, s:8,    e:16.5, d:[1,1,0,0,1,1,1]},
+  {id:'s6',  n:'Jakira',                sup:false, s:8.5,  e:17,   d:[0,0,1,1,1,1,1]},
+  {id:'s7',  n:'Jordan',                sup:false, s:8,    e:16.5, d:[1,1,1,1,0,0,1]},
+  {id:'s8',  n:'Andrew',                sup:false, s:8.5,  e:17,   d:[1,1,1,1,1,0,0]},
+  {id:'s9',  n:'Kimble',                sup:false, s:8.5,  e:17,   d:[1,1,1,1,1,0,0]},
+  {id:'s10', n:'Jacara',                sup:false, s:8.5,  e:17,   d:[0,1,1,1,1,1,0]},
+  {id:'s11', n:'Spencer',               sup:true,  s:8,    e:16.5, d:[0,1,1,1,1,1,0]},
+  {id:'s12', n:'Kenya H.',              sup:true,  s:8.5,  e:17,   d:[0,1,1,1,1,1,0]},
+  {id:'s13', n:'Crossley (1)',          sup:true,  s:8,    e:16.5, d:[1,0,0,0,0,0,1]},
+  {id:'s14', n:'Crossley (2)',          sup:true,  s:10.5, e:19,   d:[0,1,1,1,0,0,0]},
+  {id:'s15', n:'Markeea',               sup:true,  s:7,    e:15.5, d:[1,1,1,1,0,0,1]},
+  {id:'s16', n:'Aisha',                 sup:false, s:11.5, e:22,   d:[1,1,1,0,0,0,1]},
+  {id:'s17', n:'Tanya',                 sup:false, s:10.5, e:21,   d:[1,1,1,0,0,0,1]},
+  {id:'s18', n:'Vacancy 1 (bridge)',    sup:false, s:11.5, e:22,   d:[0,0,1,1,1,1,0]},
+  {id:'s19', n:'Vacancy 2 (Bridge)',    sup:false, s:10.5, e:21,   d:[0,0,1,1,1,1,0]},
+  {id:'s20', n:'Vacancy 3 (bridge)',    sup:false, s:10.5, e:21,   d:[1,1,1,0,0,0,1]},
+  {id:'s21', n:'Jenny',                 sup:false, s:11.5, e:22,   d:[1,0,0,0,1,1,1]},
+  {id:'s22', n:'Vanessa',               sup:false, s:10.3, e:21,   d:[0,0,1,1,1,1,0]},
+  {id:'s23', n:'Amanda S.',             sup:false, s:20,   e:28.5, d:[1,1,1,1,0,0,1]},
+  {id:'s24', n:'Thalen',                sup:false, s:20,   e:28.5, d:[0,0,1,1,1,1,0]},
+  {id:'s25', n:'Leslie',                sup:false, s:16,   e:24.5, d:[1,1,0,1,1,0,0]},
+  {id:'s26', n:'Kim',                   sup:false, s:16,   e:24.5, d:[1,1,1,1,0,0,0]},
+  {id:'s27', n:'Tiffany',               sup:false, s:16,   e:24.5, d:[0,1,1,0,1,1,0]},
+  {id:'s28', n:'Cathy',                 sup:false, s:16,   e:24.5, d:[1,0,1,0,1,0,1]},
+  {id:'s29', n:'Larry',                 sup:false, s:16,   e:24.5, d:[0,1,1,1,1,0,0]},
+  {id:'s30', n:'Andrea',                sup:false, s:16,   e:24.5, d:[1,1,0,0,1,1,0]},
+  {id:'s31', n:'Raymond',               sup:false, s:16,   e:24.5, d:[0,0,1,1,1,0,1]},
+  {id:'s32', n:'Karlton',               sup:false, s:16,   e:24.5, d:[1,1,1,0,0,1,0]},
+  {id:'s33', n:'Preckt 1',              sup:false, s:16,   e:24.5, d:[0,1,0,1,1,1,0]},
+  {id:'s34', n:'Michele',               sup:true,  s:16,   e:24.5, d:[1,1,0,1,1,0,0]},
+  {id:'s35', n:'Patrick 2',             sup:true,  s:0,    e:8.5,  d:[1,1,1,0,0,1,1]},
+  {id:'s36', n:'Tanesha',               sup:false, s:22.5, e:30.5, d:[1,1,0,0,1,1,0]},
+  {id:'s37', n:'Tanesha 2',             sup:true,  s:22.5, e:30.5, d:[0,0,1,1,0,0,1]},
+  {id:'s38', n:'Robert',                sup:true,  s:0,    e:8.5,  d:[0,0,1,1,1,0,0]},
+  {id:'s39', n:'Kinesha',               sup:false, s:0,    e:8.5,  d:[1,1,1,0,0,0,1]},
+  {id:'s40', n:'Sherryann',             sup:false, s:0,    e:8.5,  d:[0,1,1,1,1,0,0]},
+  {id:'s41', n:'Nija',                  sup:false, s:0,    e:8.5,  d:[1,0,0,1,1,1,0]},
+  {id:'s42', n:'Vacancy 1 (overnight)', sup:false, s:0,    e:8.5,  d:[0,1,0,1,0,1,1]},
+  {id:'s43', n:'Vacancy 2 (overnight)', sup:false, s:0,    e:8.5,  d:[1,0,1,0,1,0,1]},
+  {id:'s44', n:'Dur-Wesh',              sup:false, s:22.5, e:30.5, d:[0,1,1,0,0,1,1]},
 ];
 
-let staff = [];
-let currentEditDays = [1,1,1,1,1,0,0];
-let selDay = 0;
-let dvChart = null;
-
-// TIME HELPERS
-function t2d(timeStr) {
-    if(!timeStr) return 0;
-    const [h, m] = timeStr.split(':').map(Number);
-    return h + (m / 60);
+function defaultErlang(){
+  return {
+    params:{aht:300,sl:80,awt:20,shrink:30},
+    overall:new Array(48).fill(0),
+    weekday:new Array(48).fill(0),
+    weekend:new Array(48).fill(0)
+  };
 }
 
-function d2t(decimal) {
-    const h = Math.floor(decimal % 24);
-    const m = Math.round((decimal % 1) * 60);
-    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+let staff=[], erlangData=defaultErlang(), currentEditDays=[1,1,1,1,1,0,0], selDay=0, dvChart=null, activeErlangTab='overall';
+
+/* ---- STORAGE ---- */
+function init(){
+  let saved=null;
+  try{ saved=localStorage.getItem(STORAGE_KEY); }catch(e){}
+  if(saved){
+    try{
+      const p=JSON.parse(saved);
+      if(Array.isArray(p)){ staff=p; erlangData=defaultErlang(); }
+      else{
+        staff=p.staff||[...PRELOAD_STAFF];
+        erlangData=p.erlang||defaultErlang();
+        ['overall','weekday','weekend'].forEach(k=>{
+          if(!erlangData[k]||erlangData[k].length!==48) erlangData[k]=new Array(48).fill(0);
+        });
+      }
+    }catch(e){ staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
+  } else {
+    let old=null;
+    try{ old=localStorage.getItem(OLD_KEY); }catch(e){}
+    if(old){
+      try{ staff=JSON.parse(old); erlangData=defaultErlang(); showToast('Migrated from previous version!'); }
+      catch(e){ staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
+    } else { staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
+  }
+  document.getElementById('eAHT').value    = erlangData.params.aht;
+  document.getElementById('eSL').value     = erlangData.params.sl;
+  document.getElementById('eAWT').value    = erlangData.params.awt;
+  document.getElementById('eShrink').value = erlangData.params.shrink;
+  goTab('dayview');
 }
 
-// OVERNIGHT FIX: Checks current day + carryover from previous day
-function isWorking(s, dIdx, hr) {
-    // 1. Check current day's shift
-    if(s.d[dIdx] === 1) {
-        if (Math.max(s.s, hr) < Math.min(Math.min(s.e, 24), hr + 1)) return true;
-    }
-    // 2. Check if previous day spilled into today
-    const prevIdx = (dIdx - 1 + 7) % 7;
-    if(s.d[prevIdx] === 1 && s.e > 24) {
-        const carryoverEnd = s.e - 24;
-        if (Math.max(0, hr) < Math.min(carryoverEnd, hr + 1)) return true;
-    }
-    return false;
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY,JSON.stringify({staff,erlang:erlangData})); }
+  catch(e){ alert('Save failed — localStorage may be full or blocked.'); }
 }
 
-function init() {
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-        try { staff = JSON.parse(atob(hash)); }
-        catch(e) { staff = [...PRELOAD_STAFF]; }
-    } else {
-        staff = [...PRELOAD_STAFF];
-    }
-    goTab('dayview');
+/* ---- EXPORT / IMPORT ---- */
+function exportData(){
+  const j=JSON.stringify({staff,erlang:erlangData},null,2);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));
+  a.download='pcl-staffing-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  showToast('Exported!');
 }
-
-function saveData() {
-    window.location.hash = btoa(JSON.stringify(staff));
-    renderAll();
-}
-
-function openEditor(id = null) {
-    document.getElementById('editorPanel').style.display = 'block';
-    if(id) {
-        const s = staff.find(x => x.id === id);
-        document.getElementById('eId').value = s.id;
-        document.getElementById('eName').value = s.n;
-        document.getElementById('eRole').value = s.sup ? "CCS" : "CC";
-        document.getElementById('eStart').value = d2t(s.s);
-        document.getElementById('eEnd').value = d2t(s.e % 24);
-        document.getElementById('eNextDay').checked = s.e > 24;
-        currentEditDays = [...s.d];
-    } else {
-        document.getElementById('eId').value = "";
-        document.getElementById('eName').value = "";
-        document.getElementById('eStart').value = "08:00";
-        document.getElementById('eEnd').value = "16:00";
-        currentEditDays = [1,1,1,1,1,0,0];
-    }
-    renderDayToggles();
-}
-
-function closeEditor() { document.getElementById('editorPanel').style.display = 'none'; }
-
-function renderDayToggles() {
-    const container = document.getElementById('eDays');
-    container.innerHTML = DAYS.map((day, i) => 
-        `<button class="dtg ${currentEditDays[i] ? 'on' : ''}" onclick="toggleDay(${i})">${day[0]}</button>`
-    ).join('');
-}
-
-function toggleDay(i) { currentEditDays[i] = currentEditDays[i] ? 0 : 1; renderDayToggles(); }
-
-function saveStaff() {
-    const id = document.getElementById('eId').value;
-    const sTime = t2d(document.getElementById('eStart').value);
-    let eTime = t2d(document.getElementById('eEnd').value);
-    if(document.getElementById('eNextDay').checked) eTime += 24;
-
-    const data = {
-        id: id || "st-" + Date.now(),
-        n: document.getElementById('eName').value,
-        sup: document.getElementById('eRole').value === "CCS",
-        s: sTime, e: eTime, d: [...currentEditDays]
-    };
-
-    if(id) {
-        const idx = staff.findIndex(x => x.id === id);
-        staff[idx] = data;
-    } else {
-        staff.push(data);
-    }
-    saveData();
-    closeEditor();
-}
-
-function renderAll() { renderRoster(); renderHeatmap(); renderDayView(); }
-
-function renderRoster() {
-    const body = document.getElementById('rosterBody');
-    body.innerHTML = staff.map(s => `
-        <tr>
-            <td><strong>${s.n}</strong></td>
-            <td>${s.sup ? 'CCS' : 'CC'}</td>
-            <td>${d2t(s.s)} - ${d2t(s.e % 24)} ${s.e > 24 ? '(+1)' : ''}</td>
-            <td style="font-family: monospace">${s.d.map((on, i) => on ? DAYS[i][0] : '-').join(' ')}</td>
-            <td>
-                <button class="btn btn-p" onclick="openEditor('${s.id}')">Edit</button>
-                <button class="btn btn-d" onclick="staff = staff.filter(x => x.id !== '${s.id}'); saveData();">Del</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function renderHeatmap() {
-    const grid = document.getElementById('hmGrid');
-    grid.style.gridTemplateColumns = '80px repeat(24, 1fr)';
-    let html = '<div></div>';
-    for(let h=0; h<24; h++) html += `<div style="text-align:center; font-size:10px">${h}h</div>`;
-    for(let d=0; d<7; d++) {
-        html += `<div style="padding:10px; font-weight:bold">${DAYS[d]}</div>`;
-        for(let h=0; h<24; h++) {
-            const onDuty = staff.filter(s => isWorking(s, d, h));
-            const count = onDuty.length;
-            const alpha = Math.min(count / 12, 1);
-            html += `<div class="hmcell" style="background:${count > 0 ? `rgba(37, 99, 235, ${alpha})` : '#fff'}; color:${alpha > 0.5 ? '#fff' : '#000'}">
-                ${count > 0 ? count : ''}
-                ${onDuty.some(x => x.sup) ? '<div class="sup-pip"></div>' : ''}
-            </div>`;
-        }
-    }
-    grid.innerHTML = html;
-}
-
-function renderDayView() {
-    document.getElementById('daySelector').innerHTML = DAYS.map((d, i) => 
-        `<button class="tb ${i === selDay ? 'a' : ''}" onclick="selDay=${i};renderDayView()">${d}</button>`
-    ).join('');
-    const ctx = document.getElementById('dvChart').getContext('2d');
-    const hours = Array.from({length: 24}, (_, i) => i);
-    const ccData = hours.map(h => staff.filter(s => isWorking(s, selDay, h) && !s.sup).length);
-    const supData = hours.map(h => staff.filter(s => isWorking(s, selDay, h) && s.sup).length);
-    if(dvChart) dvChart.destroy();
-    dvChart = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: hours.map(h => h + ":00"), datasets: [
-            { label: 'CCS', data: supData, backgroundColor: '#d97706' },
-            { label: 'CC', data: ccData, backgroundColor: '#2563eb' }
-        ]},
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } } }
+function openImport(){ document.getElementById('importModal').classList.add('open'); }
+function closeImport(){ document.getElementById('importModal').classList.remove('open'); }
+function doImport(){
+  try{
+    const p=JSON.parse(document.getElementById('importText').value.trim());
+    if(!p.staff) throw new Error('missing staff');
+    staff=p.staff;
+    erlangData=p.erlang||defaultErlang();
+    ['overall','weekday','weekend'].forEach(k=>{
+      if(!erlangData[k]||erlangData[k].length!==48) erlangData[k]=new Array(48).fill(0);
     });
+    document.getElementById('eAHT').value    = erlangData.params.aht;
+    document.getElementById('eSL').value     = erlangData.params.sl;
+    document.getElementById('eAWT').value    = erlangData.params.awt;
+    document.getElementById('eShrink').value = erlangData.params.shrink;
+    saveData(); renderAll(); renderErlangContent(); closeImport();
+    showToast('Import successful!');
+  }catch(e){ alert('Invalid JSON — make sure you paste the full exported file.'); }
 }
 
-function goTab(t) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('a'));
-    document.querySelectorAll('.tb').forEach(b => b.classList.remove('a'));
-    document.getElementById('page-' + t).classList.add('a');
-    renderAll();
+/* ---- TOAST ---- */
+let _tt=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-window.onload = init;
+/* ---- TIME HELPERS ---- */
+function t2d(s){ if(!s)return 0; const[h,m]=s.split(':').map(Number); return h+m/60; }
+function d2t(dec){ const h=Math.floor(dec%24),m=Math.round((dec%1)*60); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+function isWorking(s,dIdx,hr){
+  if(s.d[dIdx]===1&&Math.max(s.s,hr)<Math.min(Math.min(s.e,24),hr+1))return true;
+  const prev=(dIdx-1+7)%7;
+  if(s.d[prev]===1&&s.e>24&&Math.max(0,hr)<Math.min(s.e-24,hr+1))return true;
+  return false;
+}
+
+/* ---- ERLANG C MATH ---- */
+function logFact(n){ let r=0; for(let i=2;i<=n;i++)r+=Math.log(i); return r; }
+function erlangC(A,N){
+  if(N<=0||A<=0)return 0;
+  if(N<=A)return 1;
+  const logA=Math.log(A);
+  let sum=1,logT=0;
+  for(let k=1;k<N;k++){ logT+=logA-Math.log(k); sum+=Math.exp(logT); }
+  const pN=Math.exp(N*logA-logFact(N)+Math.log(N/(N-A)));
+  return Math.min(1,Math.max(0,pN/(sum+pN)));
+}
+function calcSL(N,A,awt,aht){ if(N<=A)return 0; return 1-erlangC(A,N)*Math.exp(-(N-A)*(awt/aht)); }
+function requiredAgents(calls30,aht,slPct,awt,shrink){
+  if(calls30<=0)return 0;
+  const A=(calls30*aht)/1800;
+  let N=Math.max(1,Math.ceil(A));
+  for(let i=0;i<500;i++){ if(calcSL(N,A,awt,aht)>=slPct/100)break; N++; }
+  return Math.ceil(N/(1-shrink/100));
+}
+function getReqSlots(key){
+  const p=erlangData.params;
+  return erlangData[key].map(c=>requiredAgents(c,p.aht,p.sl,p.awt,p.shrink));
+}
+function slotsToHourly(slots){ return Array.from({length:24},(_,h)=>Math.max(slots[h*2]||0,slots[h*2+1]||0)); }
+
+/* ---- DAY VIEW ---- */
+function renderDayView(){
+  document.getElementById('daySelector').innerHTML=DAYS.map((d,i)=>
+    `<button class="tb ${i===selDay?'a':''}" onclick="selDay=${i};renderDayView()">${d}</button>`
+  ).join('');
+  // Auto-select dataset based on day (Mon-Fri = weekday, Sat-Sun = weekend)
+  document.getElementById('erlangOverlaySet').value = selDay >= 5 ? 'weekend' : 'weekday';
+  const hrs=Array.from({length:24},(_,i)=>i);
+  const ccD =hrs.map(h=>staff.filter(s=>isWorking(s,selDay,h)&&!s.sup).length);
+  const supD=hrs.map(h=>staff.filter(s=>isWorking(s,selDay,h)&&s.sup).length);
+  const total=hrs.map((_,h)=>ccD[h]+supD[h]);
+  const on=document.getElementById('erlangOverlayOn').checked;
+  const oset=document.getElementById('erlangOverlaySet').value;
+  const datasets=[
+    {label:'CCS',data:supD,backgroundColor:'#d97706',stack:'s'},
+    {label:'CC', data:ccD, backgroundColor:'#2563eb',stack:'s'},
+  ];
+  let reqH=null;
+  if(on){
+    reqH=slotsToHourly(getReqSlots(oset));
+    datasets.push({
+      label:'Required (Erlang)',data:reqH,type:'line',
+      borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.07)',
+      borderWidth:2.5,borderDash:[6,3],pointRadius:4,
+      pointBackgroundColor:'#dc2626',fill:false,order:0
+    });
+    const lbl={overall:'Overall 7-day avg',weekday:'Weekday',weekend:'Weekend'};
+    document.getElementById('overlayNote').textContent='← '+lbl[oset];
+  } else { document.getElementById('overlayNote').textContent=''; }
+  const ctx=document.getElementById('dvChart').getContext('2d');
+  if(dvChart)dvChart.destroy();
+  dvChart=new Chart(ctx,{
+    type:'bar',
+    data:{labels:hrs.map(h=>h+':00'),datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top'}},
+      scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1},
+        title:{display:true,text:'Staff on Duty'}}}}
+  });
+  const gc=document.getElementById('gapCard'),gl=document.getElementById('gapList');
+  if(on&&reqH){
+    const gaps=hrs.filter(h=>total[h]<reqH[h]);
+    gc.style.display='block';
+    if(gaps.length>0){
+      gl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px">'+
+        gaps.map(h=>`<span class="rbadge rb-hi">${h}:00 — ${reqH[h]-total[h]} short</span>`).join('')+
+        `</div><p style="margin-top:10px;font-size:12px;color:var(--txm)">
+          ${gaps.length} hour${gaps.length>1?'s':''} below target on ${DAYS[selDay]}.
+          Erlang target includes ${erlangData.params.shrink}% shrinkage.
+        </p>`;
+    } else {
+      gl.innerHTML=`<p style="color:var(--green);font-weight:700">All hours meet or exceed the Erlang target on ${DAYS[selDay]}.</p>`;
+    }
+  } else { gc.style.display='none'; }
+}
+
+/* ---- HEATMAP ---- */
+function renderHeatmap(){
+  const g=document.getElementById('hmGrid');
+  g.style.gridTemplateColumns='60px repeat(24,1fr)';
+  let h='<div></div>';
+  for(let i=0;i<24;i++) h+=`<div style="text-align:center;font-size:9px;padding:3px 0">${i}h</div>`;
+  for(let d=0;d<7;d++){
+    h+=`<div style="padding:6px 3px;font-weight:700;font-size:11px">${DAYS[d]}</div>`;
+    for(let i=0;i<24;i++){
+      const on=staff.filter(s=>isWorking(s,d,i));
+      const c=on.length, a=Math.min(c/14,1);
+      h+=`<div class="hmcell" style="background:${c>0?`rgba(37,99,235,${a})`:'#fff'};color:${a>0.5?'#fff':'#000'}">
+        ${c>0?c:''}${on.some(x=>x.sup)?'<div class="sup-pip"></div>':''}
+      </div>`;
+    }
+  }
+  g.innerHTML=h;
+}
+
+/* ---- ROSTER ---- */
+function openEditor(id=null){
+  document.getElementById('editorPanel').style.display='block';
+  if(id){
+    const s=staff.find(x=>x.id===id);
+    document.getElementById('eId').value=s.id;
+    document.getElementById('eName').value=s.n;
+    document.getElementById('eRole').value=s.sup?'CCS':'CC';
+    document.getElementById('eStart').value=d2t(s.s);
+    document.getElementById('eEnd').value=d2t(s.e%24);
+    document.getElementById('eNextDay').checked=s.e>24;
+    currentEditDays=[...s.d];
+  } else {
+    ['eId','eName'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('eStart').value='08:00';
+    document.getElementById('eEnd').value='16:00';
+    document.getElementById('eNextDay').checked=false;
+    currentEditDays=[1,1,1,1,1,0,0];
+  }
+  renderDayToggles();
+}
+function closeEditor(){ document.getElementById('editorPanel').style.display='none'; }
+function renderDayToggles(){
+  document.getElementById('eDays').innerHTML=DAYS.map((d,i)=>
+    `<button class="dtg ${currentEditDays[i]?'on':''}" onclick="toggleDay(${i})">${d[0]}</button>`
+  ).join('');
+}
+function toggleDay(i){ currentEditDays[i]=currentEditDays[i]?0:1; renderDayToggles(); }
+function saveStaff(){
+  const id=document.getElementById('eId').value;
+  let e=t2d(document.getElementById('eEnd').value);
+  if(document.getElementById('eNextDay').checked) e+=24;
+  const data={
+    id:id||'st-'+Date.now(),
+    n:document.getElementById('eName').value,
+    sup:document.getElementById('eRole').value==='CCS',
+    s:t2d(document.getElementById('eStart').value),e,d:[...currentEditDays]
+  };
+  if(id){staff[staff.findIndex(x=>x.id===id)]=data;}else{staff.push(data);}
+  saveData(); renderAll(); closeEditor(); showToast('Saved!');
+}
+function renderRoster(){
+  document.getElementById('rosterCount').textContent=`(${staff.length})`;
+  document.getElementById('rosterBody').innerHTML=staff.map(s=>`
+    <tr>
+      <td><strong>${s.n}</strong></td>
+      <td>${s.sup
+        ?'<span style="background:var(--su2);color:var(--sup);padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700">CCS</span>'
+        :'<span style="background:var(--bl2);color:var(--blue);padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700">CC</span>'}</td>
+      <td>${d2t(s.s)} – ${d2t(s.e%24)} ${s.e>24?'<span style="font-size:10px;color:var(--txm)">(+1)</span>':''}</td>
+      <td style="font-family:monospace;letter-spacing:2px;font-size:11px">${s.d.map((on,i)=>on?DAYS[i][0]:'·').join(' ')}</td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-p" onclick="openEditor('${s.id}')">Edit</button>
+        <button class="btn btn-d" onclick="if(confirm('Delete ${s.n}?')){staff=staff.filter(x=>x.id!=='${s.id}');saveData();renderAll();}">Del</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ---- ERLANG TAB ---- */
+function saveErlangParams(){
+  erlangData.params={
+    aht:parseFloat(document.getElementById('eAHT').value)||300,
+    sl: parseFloat(document.getElementById('eSL').value)||80,
+    awt:parseFloat(document.getElementById('eAWT').value)||20,
+    shrink:parseFloat(document.getElementById('eShrink').value)||30
+  };
+  saveData(); renderErlangContent(); showToast('Parameters saved!');
+}
+function switchErlangTab(k){
+  activeErlangTab=k;
+  ['overall','weekday','weekend'].forEach(t=>document.getElementById('etb-'+t).classList.toggle('a',t===k));
+  renderErlangContent();
+}
+function readSlotInputs(){
+  for(let i=0;i<48;i++){
+    const el=document.getElementById('slot-'+i);
+    if(el) erlangData[activeErlangTab][i]=parseFloat(el.value)||0;
+  }
+}
+function saveErlangSlots(){
+  readSlotInputs(); saveData(); renderErlangContent(); showToast('Call volumes saved!');
+}
+function liveUpdateSlot(i){
+  const v=parseFloat(document.getElementById('slot-'+i).value)||0;
+  erlangData[activeErlangTab][i]=v;
+  const p=erlangData.params;
+  const req=requiredAgents(v,p.aht,p.sl,p.awt,p.shrink);
+  const el=document.getElementById('req-'+i);
+  if(el){
+    el.textContent=req>0?req:'—';
+    el.className='rbadge '+(req===0?'rb-z':req<=5?'rb-ok':req<=10?'rb-w':'rb-hi');
+  }
+}
+function renderErlangContent(){
+  const p=erlangData.params;
+  const data=erlangData[activeErlangTab];
+  const req=data.map(c=>requiredAgents(c,p.aht,p.sl,p.awt,p.shrink));
+  const peakReq=Math.max(...req);
+  const peakSlot=req.indexOf(peakReq);
+  const active=req.filter(x=>x>0);
+  const avgReq=active.length>0?(active.reduce((a,b)=>a+b,0)/active.length).toFixed(1):'0';
+  const totalCalls=data.reduce((a,b)=>a+b,0);
+  let html=`
+    <div class="sumgrid">
+      <div class="sbox"><div class="snum">${totalCalls}</div><div class="slbl">Total calls / period</div></div>
+      <div class="sbox"><div class="snum">${peakReq}</div><div class="slbl">Peak agents needed<br><span style="font-size:10px">at ${SLOTS[peakSlot]||'—'}</span></div></div>
+      <div class="sbox"><div class="snum">${avgReq}</div><div class="slbl">Avg agents (active hrs)</div></div>
+      <div class="sbox"><div class="snum">${p.shrink}%</div><div class="slbl">Shrinkage applied</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div>
+        <strong style="font-size:13px">Enter calls per 30-minute slot</strong>
+        <span style="font-size:11px;color:var(--txm);margin-left:8px">AHT ${p.aht}s · SL ${p.sl}% in ${p.awt}s · Shrinkage ${p.shrink}%</span>
+      </div>
+      <button class="btn btn-p" onclick="saveErlangSlots()">Save Call Volumes</button>
+    </div>
+    <div class="erl-layout">
+      <div>
+        <div class="slot-scroll">
+          <table class="slot-table">
+            <thead><tr><th>Time</th><th>Calls / 30 min</th><th>Agents Req.</th></tr></thead>
+            <tbody>`;
+  for(let i=0;i<48;i++){
+    const r=req[i];
+    const bc=r===0?'rb-z':r<=5?'rb-ok':r<=10?'rb-w':'rb-hi';
+    html+=`<tr>
+      <td style="font-family:monospace;font-weight:700;color:var(--txm);white-space:nowrap">${SLOTS[i]}</td>
+      <td><input class="slot-input" type="number" id="slot-${i}" value="${data[i]||0}" min="0" step="1" oninput="liveUpdateSlot(${i})"></td>
+      <td><span class="rbadge ${bc}" id="req-${i}">${r>0?r:'—'}</span></td>
+    </tr>`;
+  }
+  html+=`</tbody></table></div></div>
+      <div>
+        <div class="card" style="margin:0">
+          <h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Required Agents by Hour</h3>
+          <p style="font-size:11px;color:var(--txm);margin-bottom:10px">Green ≤5 · Amber 6–10 · Red >10 agents required</p>
+          <div style="height:400px"><canvas id="erlangChart"></canvas></div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('erlangContent').innerHTML=html;
+  const hourlyReq=slotsToHourly(req);
+  new Chart(document.getElementById('erlangChart').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:Array.from({length:24},(_,h)=>h+':00'),
+      datasets:[{
+        label:'Required agents (post-shrinkage)',
+        data:hourlyReq,
+        backgroundColor:hourlyReq.map(v=>v===0?'rgba(226,232,240,0.4)':v<=5?'rgba(22,163,74,0.7)':v<=10?'rgba(217,119,6,0.7)':'rgba(220,38,38,0.7)'),
+        borderRadius:3
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{title:{display:true,text:'Hour of Day'}},
+        y:{beginAtZero:true,ticks:{stepSize:1},title:{display:true,text:'Agents Required'}}
+      }
+    }
+  });
+}
+
+/* ---- RENDER ALL ---- */
+function renderAll(){ renderRoster(); renderHeatmap(); renderDayView(); }
+
+function goTab(t){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('a'));
+  const names=['dayview','heatmap','roster','erlang'];
+  document.querySelectorAll('.hdr .tb').forEach((b,i)=>b.classList.toggle('a',names[i]===t));
+  document.getElementById('page-'+t).classList.add('a');
+  if(t==='erlang') renderErlangContent(); else renderAll();
+}
+
+window.onload=init;
 </script>
 </body>
 </html>
+```
