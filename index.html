@@ -313,7 +313,9 @@ async function loadFromGist(){
     const gist = await resp.json();
     const content = gist.files[GIST_FILE]?.content;
     if(!content) throw new Error('file missing');
-    const parsed = JSON.parse(content);
+    let decoded = content;
+    try { decoded = decodeURIComponent(content); } catch(e) {}
+    const parsed = JSON.parse(decoded);
     applyData(parsed);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     setSyncStatus('✓ synced from Gist', 'ok');
