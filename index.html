@@ -122,7 +122,6 @@ label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-botto
       <label><input type="checkbox" id="erlangOverlayOn" onchange="renderDayView()"> Show Erlang Target Line</label>
       <span style="font-size:12px;color:var(--txm)">Dataset:</span>
       <select id="erlangOverlaySet" onchange="renderDayView()">
-        <option value="overall">Overall (7-day avg)</option>
         <option value="weekday">Weekday (Mon–Fri)</option>
         <option value="weekend">Weekend (Sat–Sun)</option>
       </select>
@@ -180,19 +179,18 @@ label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-botto
   <div class="card">
     <h2 style="font-size:16px;font-weight:700;margin-bottom:14px">Call Center Parameters</h2>
     <div class="params-grid">
-      <div><label>Avg Handle Time (seconds)</label><input class="fi" type="number" id="eAHT" min="1" placeholder="e.g. 300"></div>
+      <div><label>Avg Handle Time (seconds)</label><input class="fi" type="number" id="eAHT" min="1" placeholder="e.g. 365"></div>
       <div><label>Target Service Level (%)</label><input class="fi" type="number" id="eSL" min="1" max="99" placeholder="e.g. 80"></div>
       <div><label>Answer Within (seconds)</label><input class="fi" type="number" id="eAWT" min="1" placeholder="e.g. 20"></div>
       <div><label>Shrinkage (%)</label><input class="fi" type="number" id="eShrink" min="0" max="90" placeholder="e.g. 30"></div>
     </div>
     <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
       <button class="btn btn-p" onclick="saveErlangParams()">Save Parameters</button>
-      <span style="font-size:12px;color:var(--txm)">Applies to all three datasets.</span>
+      <span style="font-size:12px;color:var(--txm)">Applies to both datasets.</span>
     </div>
   </div>
   <div class="etabs">
-    <button class="etb a" id="etb-overall" onclick="switchErlangTab('overall')">Overall (7-day avg)</button>
-    <button class="etb"   id="etb-weekday" onclick="switchErlangTab('weekday')">Weekday (Mon–Fri)</button>
+    <button class="etb a" id="etb-weekday" onclick="switchErlangTab('weekday')">Weekday (Mon–Fri)</button>
     <button class="etb"   id="etb-weekend" onclick="switchErlangTab('weekend')">Weekend (Sat–Sun)</button>
   </div>
   <div id="erlangContent"></div>
@@ -252,31 +250,38 @@ const PRELOAD_STAFF = [
   {id:'s44', n:'Dur-Wesh',              sup:false, s:22.5, e:30.5, d:[0,1,1,0,0,1,1]},
 ];
 
+const PRELOAD_ERLANG = {
+  params: { aht:365, sl:80, awt:20, shrink:30 },
+  weekday: new Array(48).fill(0),
+  weekend: new Array(48).fill(0)
+};
+
 function defaultErlang(){
   return {
-    params:{aht:300,sl:80,awt:20,shrink:30},
-    overall:new Array(48).fill(0),
-    weekday:new Array(48).fill(0),
-    weekend:new Array(48).fill(0)
+    params: {...PRELOAD_ERLANG.params},
+    weekday: [...PRELOAD_ERLANG.weekday],
+    weekend: [...PRELOAD_ERLANG.weekend]
   };
 }
 
-let staff=[], erlangData=defaultErlang(), currentEditDays=[1,1,1,1,1,0,0], selDay=0, dvChart=null, activeErlangTab='overall';
+let staff=[], erlangData=defaultErlang(), currentEditDays=[1,1,1,1,1,0,0], selDay=0, dvChart=null, activeErlangTab='weekday';
 
-/* ---- STORAGE ---- */
 function init(){
   let saved=null;
   try{ saved=localStorage.getItem(STORAGE_KEY); }catch(e){}
   if(saved){
     try{
       const p=JSON.parse(saved);
-      if(Array.isArray(p)){ staff=p; erlangData=defaultErlang(); }
-      else{
+      if(Array.isArray(p)){
+        staff=p; erlangData=defaultErlang();
+      } else {
         staff=p.staff||[...PRELOAD_STAFF];
-        erlangData=p.erlang||defaultErlang();
-        ['overall','weekday','weekend'].forEach(k=>{
-          if(!erlangData[k]||erlangData[k].length!==48) erlangData[k]=new Array(48).fill(0);
-        });
+        const se=p.erlang||{};
+        erlangData={
+          params: se.params ? {...se.params} : {...PRELOAD_ERLANG.params},
+          weekday: (se.weekday&&se.weekday.length===48) ? [...se.weekday] : [...PRELOAD_ERLANG.weekday],
+          weekend: (se.weekend&&se.weekend.length===48) ? [...se.weekend] : [...PRELOAD_ERLANG.weekend],
+        };
       }
     }catch(e){ staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
   } else {
@@ -285,7 +290,9 @@ function init(){
     if(old){
       try{ staff=JSON.parse(old); erlangData=defaultErlang(); showToast('Migrated from previous version!'); }
       catch(e){ staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
-    } else { staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
+    } else {
+      staff=[...PRELOAD_STAFF]; erlangData=defaultErlang();
+    }
   }
   document.getElementById('eAHT').value    = erlangData.params.aht;
   document.getElementById('eSL').value     = erlangData.params.sl;
@@ -299,7 +306,6 @@ function saveData(){
   catch(e){ alert('Save failed — localStorage may be full or blocked.'); }
 }
 
-/* ---- EXPORT / IMPORT ---- */
 function exportData(){
   const j=JSON.stringify({staff,erlang:erlangData},null,2);
   const a=document.createElement('a');
@@ -315,10 +321,12 @@ function doImport(){
     const p=JSON.parse(document.getElementById('importText').value.trim());
     if(!p.staff) throw new Error('missing staff');
     staff=p.staff;
-    erlangData=p.erlang||defaultErlang();
-    ['overall','weekday','weekend'].forEach(k=>{
-      if(!erlangData[k]||erlangData[k].length!==48) erlangData[k]=new Array(48).fill(0);
-    });
+    const se=p.erlang||{};
+    erlangData={
+      params: se.params ? {...se.params} : {...PRELOAD_ERLANG.params},
+      weekday: (se.weekday&&se.weekday.length===48) ? [...se.weekday] : [...PRELOAD_ERLANG.weekday],
+      weekend: (se.weekend&&se.weekend.length===48) ? [...se.weekend] : [...PRELOAD_ERLANG.weekend],
+    };
     document.getElementById('eAHT').value    = erlangData.params.aht;
     document.getElementById('eSL').value     = erlangData.params.sl;
     document.getElementById('eAWT').value    = erlangData.params.awt;
@@ -328,7 +336,6 @@ function doImport(){
   }catch(e){ alert('Invalid JSON — make sure you paste the full exported file.'); }
 }
 
-/* ---- TOAST ---- */
 let _tt=null;
 function showToast(msg){
   const t=document.getElementById('toast');
@@ -336,7 +343,6 @@ function showToast(msg){
   clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-/* ---- TIME HELPERS ---- */
 function t2d(s){ if(!s)return 0; const[h,m]=s.split(':').map(Number); return h+m/60; }
 function d2t(dec){ const h=Math.floor(dec%24),m=Math.round((dec%1)*60); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 function isWorking(s,dIdx,hr){
@@ -346,7 +352,6 @@ function isWorking(s,dIdx,hr){
   return false;
 }
 
-/* ---- ERLANG C MATH ---- */
 function logFact(n){ let r=0; for(let i=2;i<=n;i++)r+=Math.log(i); return r; }
 function erlangC(A,N){
   if(N<=0||A<=0)return 0;
@@ -371,12 +376,10 @@ function getReqSlots(key){
 }
 function slotsToHourly(slots){ return Array.from({length:24},(_,h)=>Math.max(slots[h*2]||0,slots[h*2+1]||0)); }
 
-/* ---- DAY VIEW ---- */
 function renderDayView(){
   document.getElementById('daySelector').innerHTML=DAYS.map((d,i)=>
     `<button class="tb ${i===selDay?'a':''}" onclick="selDay=${i};renderDayView()">${d}</button>`
   ).join('');
-  // Auto-select dataset based on day (Mon-Fri = weekday, Sat-Sun = weekend)
   document.getElementById('erlangOverlaySet').value = selDay >= 5 ? 'weekend' : 'weekday';
   const hrs=Array.from({length:24},(_,i)=>i);
   const ccD =hrs.map(h=>staff.filter(s=>isWorking(s,selDay,h)&&!s.sup).length);
@@ -397,7 +400,7 @@ function renderDayView(){
       borderWidth:2.5,borderDash:[6,3],pointRadius:4,
       pointBackgroundColor:'#dc2626',fill:false,order:0
     });
-    const lbl={overall:'Overall 7-day avg',weekday:'Weekday',weekend:'Weekend'};
+    const lbl={weekday:'Weekday',weekend:'Weekend'};
     document.getElementById('overlayNote').textContent='← '+lbl[oset];
   } else { document.getElementById('overlayNote').textContent=''; }
   const ctx=document.getElementById('dvChart').getContext('2d');
@@ -427,7 +430,6 @@ function renderDayView(){
   } else { gc.style.display='none'; }
 }
 
-/* ---- HEATMAP ---- */
 function renderHeatmap(){
   const g=document.getElementById('hmGrid');
   g.style.gridTemplateColumns='60px repeat(24,1fr)';
@@ -446,7 +448,6 @@ function renderHeatmap(){
   g.innerHTML=h;
 }
 
-/* ---- ROSTER ---- */
 function openEditor(id=null){
   document.getElementById('editorPanel').style.display='block';
   if(id){
@@ -504,10 +505,9 @@ function renderRoster(){
     </tr>`).join('');
 }
 
-/* ---- ERLANG TAB ---- */
 function saveErlangParams(){
   erlangData.params={
-    aht:parseFloat(document.getElementById('eAHT').value)||300,
+    aht:parseFloat(document.getElementById('eAHT').value)||365,
     sl: parseFloat(document.getElementById('eSL').value)||80,
     awt:parseFloat(document.getElementById('eAWT').value)||20,
     shrink:parseFloat(document.getElementById('eShrink').value)||30
@@ -516,7 +516,7 @@ function saveErlangParams(){
 }
 function switchErlangTab(k){
   activeErlangTab=k;
-  ['overall','weekday','weekend'].forEach(t=>document.getElementById('etb-'+t).classList.toggle('a',t===k));
+  ['weekday','weekend'].forEach(t=>document.getElementById('etb-'+t).classList.toggle('a',t===k));
   renderErlangContent();
 }
 function readSlotInputs(){
@@ -548,16 +548,17 @@ function renderErlangContent(){
   const active=req.filter(x=>x>0);
   const avgReq=active.length>0?(active.reduce((a,b)=>a+b,0)/active.length).toFixed(1):'0';
   const totalCalls=data.reduce((a,b)=>a+b,0);
+  const tabLabel=activeErlangTab==='weekday'?'Weekday (Mon–Fri)':'Weekend (Sat–Sun)';
   let html=`
     <div class="sumgrid">
-      <div class="sbox"><div class="snum">${totalCalls}</div><div class="slbl">Total calls / period</div></div>
+      <div class="sbox"><div class="snum">${totalCalls.toFixed(1)}</div><div class="slbl">Avg calls / day (${tabLabel})</div></div>
       <div class="sbox"><div class="snum">${peakReq}</div><div class="slbl">Peak agents needed<br><span style="font-size:10px">at ${SLOTS[peakSlot]||'—'}</span></div></div>
       <div class="sbox"><div class="snum">${avgReq}</div><div class="slbl">Avg agents (active hrs)</div></div>
       <div class="sbox"><div class="snum">${p.shrink}%</div><div class="slbl">Shrinkage applied</div></div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
       <div>
-        <strong style="font-size:13px">Enter calls per 30-minute slot</strong>
+        <strong style="font-size:13px">Avg calls per 30-minute slot — ${tabLabel}</strong>
         <span style="font-size:11px;color:var(--txm);margin-left:8px">AHT ${p.aht}s · SL ${p.sl}% in ${p.awt}s · Shrinkage ${p.shrink}%</span>
       </div>
       <button class="btn btn-p" onclick="saveErlangSlots()">Save Call Volumes</button>
@@ -573,14 +574,14 @@ function renderErlangContent(){
     const bc=r===0?'rb-z':r<=5?'rb-ok':r<=10?'rb-w':'rb-hi';
     html+=`<tr>
       <td style="font-family:monospace;font-weight:700;color:var(--txm);white-space:nowrap">${SLOTS[i]}</td>
-      <td><input class="slot-input" type="number" id="slot-${i}" value="${data[i]||0}" min="0" step="1" oninput="liveUpdateSlot(${i})"></td>
+      <td><input class="slot-input" type="number" id="slot-${i}" value="${data[i]||0}" min="0" step="0.1" oninput="liveUpdateSlot(${i})"></td>
       <td><span class="rbadge ${bc}" id="req-${i}">${r>0?r:'—'}</span></td>
     </tr>`;
   }
   html+=`</tbody></table></div></div>
       <div>
         <div class="card" style="margin:0">
-          <h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Required Agents by Hour</h3>
+          <h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Required Agents by Hour — ${tabLabel}</h3>
           <p style="font-size:11px;color:var(--txm);margin-bottom:10px">Green ≤5 · Amber 6–10 · Red >10 agents required</p>
           <div style="height:400px"><canvas id="erlangChart"></canvas></div>
         </div>
@@ -609,7 +610,6 @@ function renderErlangContent(){
   });
 }
 
-/* ---- RENDER ALL ---- */
 function renderAll(){ renderRoster(); renderHeatmap(); renderDayView(); }
 
 function goTab(t){
