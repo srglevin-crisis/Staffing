@@ -22,7 +22,11 @@ body{background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh;paddin
 .tabs{display:flex;gap:3px;background:var(--s2);padding:4px;border-radius:var(--r)}
 .tb{padding:6px 13px;border:none;background:transparent;font-weight:600;color:var(--txm);cursor:pointer;border-radius:var(--rs);transition:0.15s;font-size:12px;white-space:nowrap}
 .tb.a{background:#fff;color:var(--blue);box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-.hdr-right{margin-left:auto;display:flex;gap:6px}
+.hdr-right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.sync-status{font-size:11px;color:var(--txm);white-space:nowrap}
+.sync-status.ok{color:var(--green)}
+.sync-status.err{color:var(--red)}
+.sync-status.busy{color:var(--sup)}
 .page{display:none;padding:18px;max-width:1400px;margin:0 auto}
 .page.a{display:block}
 .card{background:#fff;border:1px solid var(--s3);border-radius:var(--r);padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.07);margin-bottom:18px}
@@ -75,10 +79,13 @@ label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-botto
 .toast.show{opacity:1}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center}
 .modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:var(--r);padding:24px;max-width:450px;width:92%;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.modal h3{margin-bottom:8px}
+.modal{background:#fff;border-radius:var(--r);padding:24px;max-width:480px;width:92%;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal h3{margin-bottom:8px;font-size:15px;font-weight:700}
 .modal p{color:var(--txm);margin-bottom:12px;font-size:13px;line-height:1.6}
 .modal textarea{width:100%;height:120px;padding:8px;border:1px solid var(--s3);border-radius:var(--rs);font-family:monospace;font-size:11px;resize:vertical}
+.modal input{width:100%;padding:9px 10px;border:1px solid var(--s3);border-radius:var(--rs);font-size:13px;margin-bottom:10px}
+.token-banner{background:var(--su2);border:1px solid var(--sup);border-radius:var(--rs);padding:10px 14px;font-size:12px;color:var(--su4);margin-bottom:16px;display:none}
+.token-banner.show{display:block}
 </style>
 </head>
 <body>
@@ -92,15 +99,39 @@ label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-botto
     <button class="tb"   onclick="goTab('erlang')">Erlang</button>
   </div>
   <div class="hdr-right">
+    <span class="sync-status" id="syncStatus">⟳ loading...</span>
     <button class="btn btn-g" onclick="exportData()">⬇ Export</button>
     <button class="btn btn-q" onclick="openImport()">⬆ Import</button>
+    <button class="btn btn-q" onclick="openTokenModal()" title="GitHub Sync Settings">⚙ Sync</button>
   </div>
 </header>
 
+<!-- TOKEN MODAL -->
+<div class="modal-bg" id="tokenModal">
+  <div class="modal">
+    <h3>GitHub Sync Setup</h3>
+    <p>Enter your GitHub Personal Access Token to enable auto-save to Gist. Your token is stored only in this browser — never sent anywhere except GitHub.</p>
+    <p style="margin-bottom:6px"><strong>How to get a token:</strong></p>
+    <p>1. Go to <strong>github.com → Settings → Developer settings → Personal access tokens → Tokens (classic)</strong><br>
+    2. Click <strong>Generate new token (classic)</strong><br>
+    3. Give it a name, set expiration, check only <strong>gist</strong> scope<br>
+    4. Copy and paste it below</p>
+    <label style="margin-top:12px">GitHub Personal Access Token</label>
+    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-p" onclick="saveToken()">Save Token</button>
+      <button class="btn btn-d" onclick="clearToken()">Clear Token</button>
+      <button class="btn btn-q" onclick="closeTokenModal()">Cancel</button>
+    </div>
+    <p style="margin-top:12px;font-size:11px;color:var(--txm)">Gist ID: <code>b84f31369e8be84ef58543a21924ed17</code></p>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
 <div class="modal-bg" id="importModal">
   <div class="modal">
     <h3>Import Data</h3>
-    <p>Paste your exported JSON below. This replaces your current roster <strong>and</strong> Erlang data.</p>
+    <p>Paste your exported JSON below. This replaces your current roster and Erlang data.</p>
     <textarea id="importText" placeholder="Paste exported JSON here..."></textarea>
     <div style="display:flex;gap:8px;margin-top:12px">
       <button class="btn btn-p" onclick="doImport()">Import &amp; Replace</button>
@@ -176,6 +207,9 @@ label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-botto
 
 <!-- ERLANG -->
 <div class="page" id="page-erlang">
+  <div class="token-banner" id="tokenBanner">
+    ⚠️ No GitHub token set — changes save locally only. Click <strong>⚙ Sync</strong> in the header to enable cross-device saving.
+  </div>
   <div class="card">
     <h2 style="font-size:16px;font-weight:700;margin-bottom:14px">Call Center Parameters</h2>
     <div class="params-grid">
@@ -198,7 +232,10 @@ label{font-size:12px;font-weight:600;color:var(--txm);display:block;margin-botto
 
 <script>
 const STORAGE_KEY = 'pcl_staffing_v4';
-const OLD_KEY     = 'pcl_staffing_v_final_v3';
+const TOKEN_KEY   = 'pcl_gh_token';
+const GIST_ID     = 'b84f31369e8be84ef58543a21924ed17';
+const GIST_FILE   = 'pcl-staffing.json';
+const GIST_API    = 'https://api.github.com/gists/';
 const DAYS  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const SLOTS = [];
 for(let h=0;h<24;h++){SLOTS.push(String(h).padStart(2,'0')+':00');SLOTS.push(String(h).padStart(2,'0')+':30');}
@@ -257,23 +294,61 @@ const PRELOAD_ERLANG = {
 };
 
 function defaultErlang(){
-  return {
-    params: {...PRELOAD_ERLANG.params},
-    weekday: [...PRELOAD_ERLANG.weekday],
-    weekend: [...PRELOAD_ERLANG.weekend]
-  };
+  return { params:{...PRELOAD_ERLANG.params}, weekday:[...PRELOAD_ERLANG.weekday], weekend:[...PRELOAD_ERLANG.weekend] };
 }
 
 let staff=[], erlangData=defaultErlang(), currentEditDays=[1,1,1,1,1,0,0], selDay=0, dvChart=null, activeErlangTab='weekday';
 
-/* ---- STORAGE ---- */
+function setSyncStatus(msg, cls=''){
+  const el = document.getElementById('syncStatus');
+  el.textContent = msg;
+  el.className = 'sync-status ' + cls;
+}
+
+async function loadFromGist(){
+  setSyncStatus('⟳ syncing...', 'busy');
+  try{
+    const resp = await fetch(GIST_API + GIST_ID, { headers: { 'Accept': 'application/vnd.github+json' } });
+    if(!resp.ok) throw new Error('fetch failed');
+    const gist = await resp.json();
+    const content = gist.files[GIST_FILE]?.content;
+    if(!content) throw new Error('file missing');
+    const parsed = JSON.parse(content);
+    applyData(parsed);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+    setSyncStatus('✓ synced from Gist', 'ok');
+    return true;
+  }catch(e){
+    setSyncStatus('⚠ offline — using local', 'err');
+    return false;
+  }
+}
+
+async function saveToGist(json){
+  const token = localStorage.getItem(TOKEN_KEY);
+  if(!token){ setSyncStatus('✓ saved locally (no token)', ''); return; }
+  setSyncStatus('⟳ saving...', 'busy');
+  try{
+    const resp = await fetch(GIST_API + GIST_ID, {
+      method: 'PATCH',
+      headers: { 'Authorization': 'token ' + token, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github+json' },
+      body: JSON.stringify({ files: { [GIST_FILE]: { content: json } } })
+    });
+    if(!resp.ok){ const err = await resp.json(); throw new Error(err.message || 'save failed'); }
+    setSyncStatus('✓ saved to Gist', 'ok');
+  }catch(e){
+    setSyncStatus('✗ Gist save failed: ' + e.message, 'err');
+    showToast('⚠ Gist save failed — data saved locally');
+  }
+}
+
 function applyData(p){
   if(!p) return false;
   try{
     if(Array.isArray(p)){ staff=p; erlangData=defaultErlang(); return true; }
-    staff=p.staff||[...PRELOAD_STAFF];
-    const se=p.erlang||{};
-    erlangData={
+    staff = p.staff || [...PRELOAD_STAFF];
+    const se = p.erlang || {};
+    erlangData = {
       params: se.params ? {...se.params} : {...PRELOAD_ERLANG.params},
       weekday: (se.weekday&&se.weekday.length===48) ? [...se.weekday] : [...PRELOAD_ERLANG.weekday],
       weekend: (se.weekend&&se.weekend.length===48) ? [...se.weekend] : [...PRELOAD_ERLANG.weekend],
@@ -282,65 +357,63 @@ function applyData(p){
   }catch(e){ return false; }
 }
 
-function init(){
-  let loaded = false;
-
-  // 1. Try URL hash first — works cross-browser when URL is copied/shared
+async function init(){
+  let localLoaded = false;
   try{
-    const hash = location.hash.slice(1);
-    if(hash){ loaded = applyData(JSON.parse(decodeURIComponent(hash))); }
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved) localLoaded = applyData(JSON.parse(saved));
   }catch(e){}
-
-  // 2. Fall back to localStorage (same browser only)
-  if(!loaded){
-    try{
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if(saved) loaded = applyData(JSON.parse(saved));
-    }catch(e){}
-  }
-
-  // 3. Try migrating from old localStorage key
-  if(!loaded){
-    try{
-      const old = localStorage.getItem(OLD_KEY);
-      if(old){ loaded = applyData(JSON.parse(old)); if(loaded) showToast('Migrated from previous version!'); }
-    }catch(e){}
-  }
-
-  // 4. Defaults
-  if(!loaded){ staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
-
+  if(!localLoaded){ staff=[...PRELOAD_STAFF]; erlangData=defaultErlang(); }
   document.getElementById('eAHT').value    = erlangData.params.aht;
   document.getElementById('eSL').value     = erlangData.params.sl;
   document.getElementById('eAWT').value    = erlangData.params.awt;
   document.getElementById('eShrink').value = erlangData.params.shrink;
+  updateTokenBanner();
   goTab('dayview');
+  const gistLoaded = await loadFromGist();
+  if(gistLoaded){
+    document.getElementById('eAHT').value    = erlangData.params.aht;
+    document.getElementById('eSL').value     = erlangData.params.sl;
+    document.getElementById('eAWT').value    = erlangData.params.awt;
+    document.getElementById('eShrink').value = erlangData.params.shrink;
+    renderAll();
+    if(document.getElementById('page-erlang').classList.contains('a')) renderErlangContent();
+  }
 }
 
 function saveData(){
-  const json = JSON.stringify({staff,erlang:erlangData});
-  // Save to localStorage (same browser persistence)
+  const json = JSON.stringify({staff, erlang:erlangData});
   try{ localStorage.setItem(STORAGE_KEY, json); }catch(e){}
-  // Save to URL hash — encodeURIComponent handles all characters safely
-  // Copy this URL to use the same data in any other browser or device
-  try{ history.replaceState(null,'', location.pathname + location.search + '#' + encodeURIComponent(json)); }catch(e){}
+  saveToGist(json);
 }
 
-/* ---- EXPORT / IMPORT ---- */
+function openTokenModal(){
+  const t = localStorage.getItem(TOKEN_KEY);
+  document.getElementById('tokenInput').value = t ? '(token stored — paste new to replace)' : '';
+  document.getElementById('tokenModal').classList.add('open');
+}
+function closeTokenModal(){ document.getElementById('tokenModal').classList.remove('open'); }
+function saveToken(){
+  const val = document.getElementById('tokenInput').value.trim();
+  if(val && !val.startsWith('(token stored')){ localStorage.setItem(TOKEN_KEY, val); closeTokenModal(); updateTokenBanner(); showToast('✅ Token saved! Next save will sync to Gist.'); }
+  else { closeTokenModal(); }
+}
+function clearToken(){ localStorage.removeItem(TOKEN_KEY); closeTokenModal(); updateTokenBanner(); showToast('Token cleared.'); }
+function updateTokenBanner(){ document.getElementById('tokenBanner').classList.toggle('show', !localStorage.getItem(TOKEN_KEY)); }
+
 function exportData(){
-  const j=JSON.stringify({staff,erlang:erlangData},null,2);
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([j],{type:'application/json'}));
-  a.download='pcl-staffing-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
-  showToast('Exported!');
+  const j = JSON.stringify({staff,erlang:erlangData},null,2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([j],{type:'application/json'}));
+  a.download = 'pcl-staffing-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click(); showToast('Exported!');
 }
 function openImport(){ document.getElementById('importModal').classList.add('open'); }
 function closeImport(){ document.getElementById('importModal').classList.remove('open'); }
 function doImport(){
   try{
-    const p=JSON.parse(document.getElementById('importText').value.trim());
-    if(!p.staff) throw new Error('missing staff');
+    const p = JSON.parse(document.getElementById('importText').value.trim());
+    if(!p.staff) throw new Error();
     applyData(p);
     document.getElementById('eAHT').value    = erlangData.params.aht;
     document.getElementById('eSL').value     = erlangData.params.sl;
@@ -348,18 +421,16 @@ function doImport(){
     document.getElementById('eShrink').value = erlangData.params.shrink;
     saveData(); renderAll(); renderErlangContent(); closeImport();
     showToast('Import successful!');
-  }catch(e){ alert('Invalid JSON — make sure you paste the full exported file.'); }
+  }catch(e){ alert('Invalid JSON.'); }
 }
 
-/* ---- TOAST ---- */
 let _tt=null;
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg; t.classList.add('show');
-  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2500);
+  clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2800);
 }
 
-/* ---- TIME HELPERS ---- */
 function t2d(s){ if(!s)return 0; const[h,m]=s.split(':').map(Number); return h+m/60; }
 function d2t(dec){ const h=Math.floor(dec%24),m=Math.round((dec%1)*60); return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
 function isWorking(s,dIdx,hr){
@@ -369,153 +440,90 @@ function isWorking(s,dIdx,hr){
   return false;
 }
 
-/* ---- ERLANG C MATH (verified against callcentrehelper.com worked example) ---- */
 function logFact(n){ let r=0; for(let i=2;i<=n;i++)r+=Math.log(i); return r; }
 function erlangC(A,N){
-  // Returns probability a call has to wait (Pw)
-  if(N<=0||A<=0)return 0;
-  if(N<=A)return 1; // overloaded
-  const logA=Math.log(A);
-  // Sum A^i/i! for i=0..N-1 in log space to avoid overflow
-  let sum=1,logT=0;
+  if(N<=0||A<=0)return 0; if(N<=A)return 1;
+  const logA=Math.log(A); let sum=1,logT=0;
   for(let k=1;k<N;k++){ logT+=logA-Math.log(k); sum+=Math.exp(logT); }
-  // X = A^N/N! * N/(N-A)
   const pN=Math.exp(N*logA-logFact(N)+Math.log(N/(N-A)));
   return Math.min(1,Math.max(0,pN/(sum+pN)));
 }
-function calcSL(N,A,awt,aht){
-  // SL = 1 - Pw * e^(-(N-A)*(target/AHT))
-  if(N<=A)return 0;
-  return 1-erlangC(A,N)*Math.exp(-(N-A)*(awt/aht));
-}
+function calcSL(N,A,awt,aht){ if(N<=A)return 0; return 1-erlangC(A,N)*Math.exp(-(N-A)*(awt/aht)); }
 function requiredAgents(calls30,aht,slPct,awt,shrink){
   if(calls30<=0)return 0;
-  // Traffic intensity A = (calls * AHT) / interval_seconds
-  const A=(calls30*aht)/1800;
-  let N=Math.max(1,Math.ceil(A));
-  // Increment N until service level target is met
+  const A=(calls30*aht)/1800; let N=Math.max(1,Math.ceil(A));
   for(let i=0;i<500;i++){ if(calcSL(N,A,awt,aht)>=slPct/100)break; N++; }
-  // Apply shrinkage: scheduled = raw / (1 - shrinkage%)
   return Math.ceil(N/(1-shrink/100));
 }
-function getReqSlots(key){
-  const p=erlangData.params;
-  return erlangData[key].map(c=>requiredAgents(c,p.aht,p.sl,p.awt,p.shrink));
-}
+function getReqSlots(key){ const p=erlangData.params; return erlangData[key].map(c=>requiredAgents(c,p.aht,p.sl,p.awt,p.shrink)); }
 function slotsToHourly(slots){ return Array.from({length:24},(_,h)=>Math.max(slots[h*2]||0,slots[h*2+1]||0)); }
 
-/* ---- DAY VIEW ---- */
 function renderDayView(){
   document.getElementById('daySelector').innerHTML=DAYS.map((d,i)=>
-    `<button class="tb ${i===selDay?'a':''}" onclick="selDay=${i};renderDayView()">${d}</button>`
-  ).join('');
-  document.getElementById('erlangOverlaySet').value = selDay >= 5 ? 'weekend' : 'weekday';
+    `<button class="tb ${i===selDay?'a':''}" onclick="selDay=${i};renderDayView()">${d}</button>`).join('');
+  document.getElementById('erlangOverlaySet').value = selDay>=5?'weekend':'weekday';
   const hrs=Array.from({length:24},(_,i)=>i);
-  const ccD =hrs.map(h=>staff.filter(s=>isWorking(s,selDay,h)&&!s.sup).length);
+  const ccD=hrs.map(h=>staff.filter(s=>isWorking(s,selDay,h)&&!s.sup).length);
   const supD=hrs.map(h=>staff.filter(s=>isWorking(s,selDay,h)&&s.sup).length);
   const total=hrs.map((_,h)=>ccD[h]+supD[h]);
   const on=document.getElementById('erlangOverlayOn').checked;
   const oset=document.getElementById('erlangOverlaySet').value;
-  const datasets=[
-    {label:'CCS',data:supD,backgroundColor:'#d97706',stack:'s'},
-    {label:'CC', data:ccD, backgroundColor:'#2563eb',stack:'s'},
-  ];
+  const datasets=[{label:'CCS',data:supD,backgroundColor:'#d97706',stack:'s'},{label:'CC',data:ccD,backgroundColor:'#2563eb',stack:'s'}];
   let reqH=null;
   if(on){
     reqH=slotsToHourly(getReqSlots(oset));
-    datasets.push({
-      label:'Required (Erlang)',data:reqH,type:'line',
-      borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.07)',
-      borderWidth:2.5,borderDash:[6,3],pointRadius:4,
-      pointBackgroundColor:'#dc2626',fill:false,order:0
-    });
-    const lbl={weekday:'Weekday',weekend:'Weekend'};
-    document.getElementById('overlayNote').textContent='← '+lbl[oset];
+    datasets.push({label:'Required (Erlang)',data:reqH,type:'line',borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,0.07)',borderWidth:2.5,borderDash:[6,3],pointRadius:4,pointBackgroundColor:'#dc2626',fill:false,order:0});
+    document.getElementById('overlayNote').textContent='← '+{weekday:'Weekday',weekend:'Weekend'}[oset];
   } else { document.getElementById('overlayNote').textContent=''; }
   const ctx=document.getElementById('dvChart').getContext('2d');
   if(dvChart)dvChart.destroy();
-  dvChart=new Chart(ctx,{
-    type:'bar',
-    data:{labels:hrs.map(h=>h+':00'),datasets},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top'}},
-      scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1},
-        title:{display:true,text:'Staff on Duty'}}}}
-  });
+  dvChart=new Chart(ctx,{type:'bar',data:{labels:hrs.map(h=>h+':00'),datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1},title:{display:true,text:'Staff on Duty'}}}}});
   const gc=document.getElementById('gapCard'),gl=document.getElementById('gapList');
   if(on&&reqH){
-    const gaps=hrs.filter(h=>total[h]<reqH[h]);
-    gc.style.display='block';
+    const gaps=hrs.filter(h=>total[h]<reqH[h]); gc.style.display='block';
     if(gaps.length>0){
-      gl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px">'+
-        gaps.map(h=>`<span class="rbadge rb-hi">${h}:00 — ${reqH[h]-total[h]} short</span>`).join('')+
-        `</div><p style="margin-top:10px;font-size:12px;color:var(--txm)">
-          ${gaps.length} hour${gaps.length>1?'s':''} below target on ${DAYS[selDay]}.
-          Erlang target includes ${erlangData.params.shrink}% shrinkage.
-        </p>`;
-    } else {
-      gl.innerHTML=`<p style="color:var(--green);font-weight:700">All hours meet or exceed the Erlang target on ${DAYS[selDay]}.</p>`;
-    }
+      gl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:6px">'+gaps.map(h=>`<span class="rbadge rb-hi">${h}:00 — ${reqH[h]-total[h]} short</span>`).join('')+`</div><p style="margin-top:10px;font-size:12px;color:var(--txm)">${gaps.length} hour${gaps.length>1?'s':''} below target on ${DAYS[selDay]}. Erlang target includes ${erlangData.params.shrink}% shrinkage.</p>`;
+    } else { gl.innerHTML=`<p style="color:var(--green);font-weight:700">All hours meet or exceed the Erlang target on ${DAYS[selDay]}.</p>`; }
   } else { gc.style.display='none'; }
 }
 
-/* ---- HEATMAP ---- */
 function renderHeatmap(){
-  const g=document.getElementById('hmGrid');
-  g.style.gridTemplateColumns='60px repeat(24,1fr)';
+  const g=document.getElementById('hmGrid'); g.style.gridTemplateColumns='60px repeat(24,1fr)';
   let h='<div></div>';
   for(let i=0;i<24;i++) h+=`<div style="text-align:center;font-size:9px;padding:3px 0">${i}h</div>`;
   for(let d=0;d<7;d++){
     h+=`<div style="padding:6px 3px;font-weight:700;font-size:11px">${DAYS[d]}</div>`;
     for(let i=0;i<24;i++){
-      const on=staff.filter(s=>isWorking(s,d,i));
-      const c=on.length, a=Math.min(c/14,1);
-      h+=`<div class="hmcell" style="background:${c>0?`rgba(37,99,235,${a})`:'#fff'};color:${a>0.5?'#fff':'#000'}">
-        ${c>0?c:''}${on.some(x=>x.sup)?'<div class="sup-pip"></div>':''}
-      </div>`;
+      const on=staff.filter(s=>isWorking(s,d,i)); const c=on.length,a=Math.min(c/14,1);
+      h+=`<div class="hmcell" style="background:${c>0?`rgba(37,99,235,${a})`:'#fff'};color:${a>0.5?'#fff':'#000'}">${c>0?c:''}${on.some(x=>x.sup)?'<div class="sup-pip"></div>':''}</div>`;
     }
   }
   g.innerHTML=h;
 }
 
-/* ---- ROSTER ---- */
 function openEditor(id=null){
   document.getElementById('editorPanel').style.display='block';
   if(id){
     const s=staff.find(x=>x.id===id);
-    document.getElementById('eId').value=s.id;
-    document.getElementById('eName').value=s.n;
+    document.getElementById('eId').value=s.id; document.getElementById('eName').value=s.n;
     document.getElementById('eRole').value=s.sup?'CCS':'CC';
-    document.getElementById('eStart').value=d2t(s.s);
-    document.getElementById('eEnd').value=d2t(s.e%24);
-    document.getElementById('eNextDay').checked=s.e>24;
-    currentEditDays=[...s.d];
+    document.getElementById('eStart').value=d2t(s.s); document.getElementById('eEnd').value=d2t(s.e%24);
+    document.getElementById('eNextDay').checked=s.e>24; currentEditDays=[...s.d];
   } else {
     ['eId','eName'].forEach(x=>document.getElementById(x).value='');
-    document.getElementById('eStart').value='08:00';
-    document.getElementById('eEnd').value='16:00';
-    document.getElementById('eNextDay').checked=false;
-    currentEditDays=[1,1,1,1,1,0,0];
+    document.getElementById('eStart').value='08:00'; document.getElementById('eEnd').value='16:00';
+    document.getElementById('eNextDay').checked=false; currentEditDays=[1,1,1,1,1,0,0];
   }
   renderDayToggles();
 }
 function closeEditor(){ document.getElementById('editorPanel').style.display='none'; }
-function renderDayToggles(){
-  document.getElementById('eDays').innerHTML=DAYS.map((d,i)=>
-    `<button class="dtg ${currentEditDays[i]?'on':''}" onclick="toggleDay(${i})">${d[0]}</button>`
-  ).join('');
-}
+function renderDayToggles(){ document.getElementById('eDays').innerHTML=DAYS.map((d,i)=>`<button class="dtg ${currentEditDays[i]?'on':''}" onclick="toggleDay(${i})">${d[0]}</button>`).join(''); }
 function toggleDay(i){ currentEditDays[i]=currentEditDays[i]?0:1; renderDayToggles(); }
 function saveStaff(){
   const id=document.getElementById('eId').value;
   let e=t2d(document.getElementById('eEnd').value);
   if(document.getElementById('eNextDay').checked) e+=24;
-  const data={
-    id:id||'st-'+Date.now(),
-    n:document.getElementById('eName').value,
-    sup:document.getElementById('eRole').value==='CCS',
-    s:t2d(document.getElementById('eStart').value),e,d:[...currentEditDays]
-  };
+  const data={id:id||'st-'+Date.now(),n:document.getElementById('eName').value,sup:document.getElementById('eRole').value==='CCS',s:t2d(document.getElementById('eStart').value),e,d:[...currentEditDays]};
   if(id){staff[staff.findIndex(x=>x.id===id)]=data;}else{staff.push(data);}
   saveData(); renderAll(); closeEditor(); showToast('Saved!');
 }
@@ -524,9 +532,7 @@ function renderRoster(){
   document.getElementById('rosterBody').innerHTML=staff.map(s=>`
     <tr>
       <td><strong>${s.n}</strong></td>
-      <td>${s.sup
-        ?'<span style="background:var(--su2);color:var(--sup);padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700">CCS</span>'
-        :'<span style="background:var(--bl2);color:var(--blue);padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700">CC</span>'}</td>
+      <td>${s.sup?'<span style="background:var(--su2);color:var(--sup);padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700">CCS</span>':'<span style="background:var(--bl2);color:var(--blue);padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700">CC</span>'}</td>
       <td>${d2t(s.s)} – ${d2t(s.e%24)} ${s.e>24?'<span style="font-size:10px;color:var(--txm)">(+1)</span>':''}</td>
       <td style="font-family:monospace;letter-spacing:2px;font-size:11px">${s.d.map((on,i)=>on?DAYS[i][0]:'·').join(' ')}</td>
       <td style="display:flex;gap:5px">
@@ -536,113 +542,55 @@ function renderRoster(){
     </tr>`).join('');
 }
 
-/* ---- ERLANG TAB ---- */
 function saveErlangParams(){
-  erlangData.params={
-    aht:parseFloat(document.getElementById('eAHT').value)||365,
-    sl: parseFloat(document.getElementById('eSL').value)||80,
-    awt:parseFloat(document.getElementById('eAWT').value)||20,
-    shrink:parseFloat(document.getElementById('eShrink').value)||30
-  };
+  erlangData.params={aht:parseFloat(document.getElementById('eAHT').value)||365,sl:parseFloat(document.getElementById('eSL').value)||80,awt:parseFloat(document.getElementById('eAWT').value)||20,shrink:parseFloat(document.getElementById('eShrink').value)||30};
   saveData(); renderErlangContent(); showToast('Parameters saved!');
 }
-function switchErlangTab(k){
-  activeErlangTab=k;
-  ['weekday','weekend'].forEach(t=>document.getElementById('etb-'+t).classList.toggle('a',t===k));
-  renderErlangContent();
-}
-function readSlotInputs(){
-  for(let i=0;i<48;i++){
-    const el=document.getElementById('slot-'+i);
-    if(el) erlangData[activeErlangTab][i]=parseFloat(el.value)||0;
-  }
-}
-function saveErlangSlots(){
-  readSlotInputs(); saveData(); renderErlangContent(); showToast('Call volumes saved!');
-}
+function switchErlangTab(k){ activeErlangTab=k; ['weekday','weekend'].forEach(t=>document.getElementById('etb-'+t).classList.toggle('a',t===k)); renderErlangContent(); }
+function readSlotInputs(){ for(let i=0;i<48;i++){const el=document.getElementById('slot-'+i);if(el)erlangData[activeErlangTab][i]=parseFloat(el.value)||0;} }
+function saveErlangSlots(){ readSlotInputs(); saveData(); renderErlangContent(); showToast('Call volumes saved!'); }
 function liveUpdateSlot(i){
   const v=parseFloat(document.getElementById('slot-'+i).value)||0;
   erlangData[activeErlangTab][i]=v;
-  const p=erlangData.params;
-  const req=requiredAgents(v,p.aht,p.sl,p.awt,p.shrink);
+  const p=erlangData.params; const req=requiredAgents(v,p.aht,p.sl,p.awt,p.shrink);
   const el=document.getElementById('req-'+i);
-  if(el){
-    el.textContent=req>0?req:'—';
-    el.className='rbadge '+(req===0?'rb-z':req<=5?'rb-ok':req<=10?'rb-w':'rb-hi');
-  }
+  if(el){ el.textContent=req>0?req:'—'; el.className='rbadge '+(req===0?'rb-z':req<=5?'rb-ok':req<=10?'rb-w':'rb-hi'); }
 }
 function renderErlangContent(){
-  const p=erlangData.params;
-  const data=erlangData[activeErlangTab];
+  const p=erlangData.params, data=erlangData[activeErlangTab];
   const req=data.map(c=>requiredAgents(c,p.aht,p.sl,p.awt,p.shrink));
-  const peakReq=Math.max(...req);
-  const peakSlot=req.indexOf(peakReq);
+  const peakReq=Math.max(...req), peakSlot=req.indexOf(peakReq);
   const active=req.filter(x=>x>0);
   const avgReq=active.length>0?(active.reduce((a,b)=>a+b,0)/active.length).toFixed(1):'0';
   const totalCalls=data.reduce((a,b)=>a+b,0);
   const tabLabel=activeErlangTab==='weekday'?'Weekday (Mon–Fri)':'Weekend (Sat–Sun)';
-  let html=`
-    <div class="sumgrid">
-      <div class="sbox"><div class="snum">${totalCalls.toFixed(1)}</div><div class="slbl">Avg calls / day (${tabLabel})</div></div>
-      <div class="sbox"><div class="snum">${peakReq}</div><div class="slbl">Peak agents needed<br><span style="font-size:10px">at ${SLOTS[peakSlot]||'—'}</span></div></div>
-      <div class="sbox"><div class="snum">${avgReq}</div><div class="slbl">Avg agents (active hrs)</div></div>
-      <div class="sbox"><div class="snum">${p.shrink}%</div><div class="slbl">Shrinkage applied</div></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-      <div>
-        <strong style="font-size:13px">Avg calls per 30-minute slot — ${tabLabel}</strong>
-        <span style="font-size:11px;color:var(--txm);margin-left:8px">AHT ${p.aht}s · SL ${p.sl}% in ${p.awt}s · Shrinkage ${p.shrink}%</span>
-      </div>
-      <button class="btn btn-p" onclick="saveErlangSlots()">Save Call Volumes</button>
-    </div>
-    <div class="erl-layout">
-      <div>
-        <div class="slot-scroll">
-          <table class="slot-table">
-            <thead><tr><th>Time</th><th>Calls / 30 min</th><th>Agents Req.</th></tr></thead>
-            <tbody>`;
+  let html=`<div class="sumgrid">
+    <div class="sbox"><div class="snum">${totalCalls.toFixed(1)}</div><div class="slbl">Avg calls / day (${tabLabel})</div></div>
+    <div class="sbox"><div class="snum">${peakReq}</div><div class="slbl">Peak agents needed<br><span style="font-size:10px">at ${SLOTS[peakSlot]||'—'}</span></div></div>
+    <div class="sbox"><div class="snum">${avgReq}</div><div class="slbl">Avg agents (active hrs)</div></div>
+    <div class="sbox"><div class="snum">${p.shrink}%</div><div class="slbl">Shrinkage applied</div></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div><strong style="font-size:13px">Avg calls per 30-minute slot — ${tabLabel}</strong>
+    <span style="font-size:11px;color:var(--txm);margin-left:8px">AHT ${p.aht}s · SL ${p.sl}% in ${p.awt}s · Shrinkage ${p.shrink}%</span></div>
+    <button class="btn btn-p" onclick="saveErlangSlots()">Save Call Volumes</button>
+  </div>
+  <div class="erl-layout"><div><div class="slot-scroll"><table class="slot-table">
+    <thead><tr><th>Time</th><th>Calls / 30 min</th><th>Agents Req.</th></tr></thead><tbody>`;
   for(let i=0;i<48;i++){
-    const r=req[i];
-    const bc=r===0?'rb-z':r<=5?'rb-ok':r<=10?'rb-w':'rb-hi';
-    html+=`<tr>
-      <td style="font-family:monospace;font-weight:700;color:var(--txm);white-space:nowrap">${SLOTS[i]}</td>
-      <td><input class="slot-input" type="number" id="slot-${i}" value="${data[i]||0}" min="0" step="0.1" oninput="liveUpdateSlot(${i})"></td>
-      <td><span class="rbadge ${bc}" id="req-${i}">${r>0?r:'—'}</span></td>
-    </tr>`;
+    const r=req[i], bc=r===0?'rb-z':r<=5?'rb-ok':r<=10?'rb-w':'rb-hi';
+    html+=`<tr><td style="font-family:monospace;font-weight:700;color:var(--txm);white-space:nowrap">${SLOTS[i]}</td><td><input class="slot-input" type="number" id="slot-${i}" value="${data[i]||0}" min="0" step="0.1" oninput="liveUpdateSlot(${i})"></td><td><span class="rbadge ${bc}" id="req-${i}">${r>0?r:'—'}</span></td></tr>`;
   }
-  html+=`</tbody></table></div></div>
-      <div>
-        <div class="card" style="margin:0">
-          <h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Required Agents by Hour — ${tabLabel}</h3>
-          <p style="font-size:11px;color:var(--txm);margin-bottom:10px">Green ≤5 · Amber 6–10 · Red >10 agents required</p>
-          <div style="height:400px"><canvas id="erlangChart"></canvas></div>
-        </div>
-      </div>
-    </div>`;
+  html+=`</tbody></table></div></div><div><div class="card" style="margin:0">
+    <h3 style="margin-bottom:12px;font-size:14px;font-weight:700">Required Agents by Hour — ${tabLabel}</h3>
+    <p style="font-size:11px;color:var(--txm);margin-bottom:10px">Green ≤5 · Amber 6–10 · Red >10 agents required</p>
+    <div style="height:400px"><canvas id="erlangChart"></canvas></div>
+  </div></div></div>`;
   document.getElementById('erlangContent').innerHTML=html;
   const hourlyReq=slotsToHourly(req);
-  new Chart(document.getElementById('erlangChart').getContext('2d'),{
-    type:'bar',
-    data:{
-      labels:Array.from({length:24},(_,h)=>h+':00'),
-      datasets:[{
-        label:'Required agents (post-shrinkage)',
-        data:hourlyReq,
-        backgroundColor:hourlyReq.map(v=>v===0?'rgba(226,232,240,0.4)':v<=5?'rgba(22,163,74,0.7)':v<=10?'rgba(217,119,6,0.7)':'rgba(220,38,38,0.7)'),
-        borderRadius:3
-      }]
-    },
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false}},
-      scales:{
-        x:{title:{display:true,text:'Hour of Day'}},
-        y:{beginAtZero:true,ticks:{stepSize:1},title:{display:true,text:'Agents Required'}}
-      }
-    }
-  });
+  new Chart(document.getElementById('erlangChart').getContext('2d'),{type:'bar',data:{labels:Array.from({length:24},(_,h)=>h+':00'),datasets:[{label:'Required agents (post-shrinkage)',data:hourlyReq,backgroundColor:hourlyReq.map(v=>v===0?'rgba(226,232,240,0.4)':v<=5?'rgba(22,163,74,0.7)':v<=10?'rgba(217,119,6,0.7)':'rgba(220,38,38,0.7)'),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Hour of Day'}},y:{beginAtZero:true,ticks:{stepSize:1},title:{display:true,text:'Agents Required'}}}}});
 }
 
-/* ---- RENDER ALL ---- */
 function renderAll(){ renderRoster(); renderHeatmap(); renderDayView(); }
 
 function goTab(t){
@@ -650,7 +598,7 @@ function goTab(t){
   const names=['dayview','heatmap','roster','erlang'];
   document.querySelectorAll('.hdr .tb').forEach((b,i)=>b.classList.toggle('a',names[i]===t));
   document.getElementById('page-'+t).classList.add('a');
-  if(t==='erlang') renderErlangContent(); else renderAll();
+  if(t==='erlang'){ updateTokenBanner(); renderErlangContent(); } else renderAll();
 }
 
 window.onload=init;
